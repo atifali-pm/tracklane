@@ -66,8 +66,3 @@ Tracklane is a multi-tenant project management platform. Teams collaborate acros
 ## Screenshots
 
 Coming once the MVP is live.
-
-## Project links
-
-- Author: [Atif Ali](https://github.com/atifali-pm)
-- Portfolio: [github.com/atifali-pm](https://github.com/atifali-pm)
