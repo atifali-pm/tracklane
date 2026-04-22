@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Run Rails database tasks as the Postgres owner role so DDL, RLS
+# policy creation, and default-privilege assignments work.
+#
+# Usage:
+#   bin/db migrate
+#   bin/db seed
+#   bin/db rollback
+#   bin/db prepare
+set -euo pipefail
+
+if [ $# -lt 1 ]; then
+  echo "Usage: bin/db <task> [args]" >&2
+  echo "  e.g. bin/db migrate" >&2
+  exit 1
+fi
+
+task="$1"
+shift
+
+DATABASE_USER="${DATABASE_OWNER_USER:-tracklane}" \
+DATABASE_PASSWORD="${DATABASE_OWNER_PASSWORD:-tracklane}" \
+  exec bin/rails "db:${task}" "$@"

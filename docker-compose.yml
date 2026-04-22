@@ -13,6 +13,7 @@ services:
       - "5460:5432"
     volumes:
       - tracklane_pg_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U tracklane -d tracklane_development"]
       interval: 5s

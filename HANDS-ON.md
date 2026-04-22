@@ -85,6 +85,7 @@ Keep decisions log here as the build progresses:
 
 - `2026-04-22` — Project spec committed. Name placeholder: Tracklane. Stack locked: Rails 8, Postgres 16, Solid Queue/Cable/Cache, Hotwire, Tailwind, Kamal 2. MIT license. Ports 8020/5460.
 - `2026-04-22` — Phase 1 landed. Toolchain: mise + Ruby 3.3.11, Rails 8.1.3, neighbor gem for pgvector. Postgres 16 + pgvector via `docker-compose.yml` on port 5460. Generated native auth (User, Session, Current), Organization + Membership models, pgvector extension migration, RLS scaffold migration (`apply_tenant_rls` helper applied to `memberships`). Dashboard at `/` verifies end-to-end login with seeded alice@tracklane.dev / password.
+- `2026-04-22` — Phase 2 role split landed. Postgres runs two roles: `tracklane` (owner, runs migrations) and `tracklane_app` (NOSUPERUSER NOBYPASSRLS, what Rails connects as at runtime). Role creation in `db/init/01-create-app-role.sql`; DML grants applied by the `GrantAppRoleDml` migration and re-applied after every `db:migrate / db:schema:load / db:test:prepare` via `lib/tasks/grants.rake`. `schema_format` switched to `:sql` so RLS policies survive in `db/structure.sql`. Run database tasks via `bin/db <task>` (wraps rails with the owner credentials); the regular app connection defaults to `tracklane_app`.
 
 ## Phase 1 follow-ups
 
