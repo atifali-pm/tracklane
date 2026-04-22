@@ -25,4 +25,16 @@ Membership.find_or_create_by!(user: alice, organization: acme)   { |m| m.role = 
 Membership.find_or_create_by!(user: alice, organization: globex) { |m| m.role = :viewer }
 Membership.find_or_create_by!(user: bob,   organization: globex) { |m| m.role = :manager }
 
-puts "Seeded: #{Organization.count} orgs, #{User.count} users, #{Membership.count} memberships"
+[
+  [ acme,   "Website redesign", "website-redesign", "Refresh the marketing site with the new brand system." ],
+  [ acme,   "Mobile app v2",    "mobile-app-v2",    "Native iOS and Android, feature parity with web." ],
+  [ globex, "Payments gateway", "payments-gateway", "Switch payments provider and add Apple Pay." ],
+].each do |org, name, slug, description|
+  Project.find_or_create_by!(organization: org, slug: slug) do |p|
+    p.name = name
+    p.description = description
+    p.status = :active
+  end
+end
+
+puts "Seeded: #{Organization.count} orgs, #{User.count} users, #{Membership.count} memberships, #{Project.count} projects"

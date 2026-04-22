@@ -6,10 +6,38 @@
     </p>
 
     <section class="mb-10">
-      <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Projects</h2>
-      <div class="border border-dashed border-gray-300 rounded-md p-8 text-center text-gray-500">
-        No projects yet. Project CRUD lands next.
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Projects</h2>
+        <%= link_to "View all", projects_path, class: "text-sm text-gray-600 hover:text-gray-900" %>
       </div>
+
+      <% if @recent_projects.any? %>
+        <ul class="divide-y divide-gray-200 border border-gray-200 rounded-md bg-white">
+          <% @recent_projects.each do |project| %>
+            <li class="px-4 py-3 hover:bg-gray-50">
+              <%= link_to project, class: "flex items-center justify-between" do %>
+                <div>
+                  <div class="font-medium text-gray-900"><%= project.name %></div>
+                  <% if project.description.present? %>
+                    <div class="text-sm text-gray-500 line-clamp-1"><%= project.description %></div>
+                  <% end %>
+                </div>
+                <span class="text-xs text-gray-500 capitalize"><%= project.status %></span>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <div class="border border-dashed border-gray-300 rounded-md p-8 text-center bg-white">
+          <p class="text-gray-600 mb-4">No projects in <%= current_organization.name %> yet.</p>
+          <% if current_membership&.admin? || current_membership&.manager? %>
+            <%= link_to "Create the first project", new_project_path,
+                  class: "bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800" %>
+          <% else %>
+            <p class="text-sm text-gray-500">Ask an admin or manager to create one.</p>
+          <% end %>
+        </div>
+      <% end %>
     </section>
   <% else %>
     <h1 class="text-2xl font-semibold mb-2">Welcome to Tracklane</h1>

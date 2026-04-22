@@ -1,0 +1,42 @@
+<div class="max-w-5xl mx-auto py-10 px-4">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold">Projects</h1>
+      <p class="text-sm text-gray-500">In <%= current_organization.name %></p>
+    </div>
+    <% if current_membership&.admin? || current_membership&.manager? %>
+      <%= link_to "New project", new_project_path,
+            class: "bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800" %>
+    <% end %>
+  </div>
+
+  <% if @projects.any? %>
+    <ul class="divide-y divide-gray-200 border border-gray-200 rounded-md bg-white">
+      <% @projects.each do |project| %>
+        <li class="px-4 py-4 flex items-center justify-between hover:bg-gray-50">
+          <div class="flex-1">
+            <%= link_to project, class: "block" do %>
+              <div class="font-medium text-gray-900"><%= project.name %></div>
+              <% if project.description.present? %>
+                <div class="text-sm text-gray-500 mt-0.5 line-clamp-1"><%= project.description %></div>
+              <% end %>
+            <% end %>
+          </div>
+          <span class="inline-flex items-center px-2 py-0.5 text-xs rounded-full capitalize <%= project.active? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' %>">
+            <%= project.status %>
+          </span>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <div class="border border-dashed border-gray-300 rounded-md p-10 text-center bg-white">
+      <p class="text-gray-600 mb-4">No projects yet in <%= current_organization.name %>.</p>
+      <% if current_membership&.admin? || current_membership&.manager? %>
+        <%= link_to "Create the first project", new_project_path,
+              class: "bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800" %>
+      <% else %>
+        <p class="text-sm text-gray-500">Ask an admin or manager to create one.</p>
+      <% end %>
+    </div>
+  <% end %>
+</div>

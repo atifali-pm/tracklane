@@ -7,14 +7,18 @@
         <% end %>
 
         <% if current_organization %>
-          <div class="text-sm text-gray-500">
-            <span class="text-gray-400">org:</span>
-            <span class="font-medium text-gray-800"><%= current_organization.name %></span>
-            <% if current_membership %>
-              <span class="ml-2 inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600 capitalize">
-                <%= current_membership.role %>
-              </span>
-            <% end %>
+          <div class="flex items-center gap-5">
+            <%= link_to "Projects", projects_path, class: "text-sm text-gray-700 hover:text-gray-900" %>
+
+            <div class="text-sm text-gray-500">
+              <span class="text-gray-400">org:</span>
+              <span class="font-medium text-gray-800"><%= current_organization.name %></span>
+              <% if current_membership %>
+                <span class="ml-2 inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600 capitalize">
+                  <%= current_membership.role %>
+                </span>
+              <% end %>
+            </div>
           </div>
         <% end %>
       </div>
