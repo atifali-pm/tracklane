@@ -1,5 +1,5 @@
 <% if Current.user %>
-  <nav class="border-b border-gray-200 bg-white">
+  <nav class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
     <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-8">
         <%= link_to root_path, class: "font-semibold text-gray-900 hover:text-gray-700" do %>
@@ -45,8 +45,18 @@
           </details>
         <% end %>
 
-        <span class="text-sm text-gray-500"><%= Current.user.email_address %></span>
-        <%= button_to "Sign out", session_path, method: :delete, class: "text-sm text-gray-600 hover:text-gray-900 underline" %>
+        <%= button_to user_preferences_path(theme: (theme_preference == "dark" ? "light" : "dark")),
+              method: :patch,
+              class: "text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white cursor-pointer" do %>
+          <% if theme_preference == "dark" %>
+            ☀ Light
+          <% else %>
+            ☾ Dark
+          <% end %>
+        <% end %>
+
+        <span class="text-sm text-gray-500 dark:text-gray-400"><%= Current.user.email_address %></span>
+        <%= button_to "Sign out", session_path, method: :delete, class: "text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white underline" %>
       </div>
     </div>
   </nav>

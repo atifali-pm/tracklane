@@ -2,8 +2,13 @@ Rails.application.routes.draw do
   resource :session
   resources :passwords, param: :token
   patch "switch_organization/:slug" => "current_organizations#update", as: :switch_organization
+  resource :user_preferences, only: %i[update]
 
-  resources :projects, param: :slug
+  resources :projects, param: :slug do
+    resources :issues, param: :number do
+      resources :comments, only: %i[create]
+    end
+  end
   resources :invitations, only: %i[index new create destroy], param: :token
   resource :invitation_acceptance, only: %i[show create], path: "invitations/accept/:token"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

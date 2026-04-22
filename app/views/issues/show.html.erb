@@ -1,0 +1,75 @@
+<div class="max-w-4xl mx-auto py-10 px-4">
+  <div class="mb-6">
+    <%= link_to "#{@project.name} issues", project_issues_path(@project), class: "text-sm text-gray-500 hover:text-gray-800" %>
+  </div>
+
+  <div class="flex items-start justify-between mb-4">
+    <div class="flex-1">
+      <div class="text-xs text-gray-400 font-mono mb-1">
+        <%= @project.slug %>-#<%= @issue.number %>
+      </div>
+      <h1 class="text-2xl font-semibold"><%= @issue.title %></h1>
+      <div class="text-sm text-gray-500 mt-1">
+        Opened by <%= @issue.reporter.email_address %>
+        <%= time_ago_in_words(@issue.created_at) %> ago
+        <% if @issue.assignee %>
+          · assigned to <%= @issue.assignee.email_address %>
+        <% end %>
+      </div>
+    </div>
+    <% if can_edit_issue?(@issue) %>
+      <div class="flex items-center gap-2 shrink-0">
+        <%= link_to "Edit", edit_project_issue_path(@project, @issue),
+              class: "text-sm border border-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-100" %>
+        <%= button_to "Delete", project_issue_path(@project, @issue),
+              method: :delete,
+              data: { turbo_confirm: "Delete issue ##{@issue.number}?" },
+              class: "text-sm border border-red-300 text-red-700 rounded-md px-3 py-1.5 hover:bg-red-50 cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="flex items-center gap-3 mb-6 text-sm">
+    <span class="inline-flex items-center px-2 py-0.5 rounded-full capitalize <%= status_badge_class(@issue.status) %>">
+      <%= @issue.status.humanize %>
+    </span>
+    <span class="inline-flex items-center px-2 py-0.5 rounded-full capitalize <%= priority_badge_class(@issue.priority) %>">
+      priority: <%= @issue.priority %>
+    </span>
+    <% if @issue.due_date %>
+      <span class="text-gray-500">due <%= @issue.due_date.to_fs(:long) %></span>
+    <% end %>
+  </div>
+
+  <% if @issue.description.present? %>
+    <div class="bg-white border border-gray-200 rounded-md p-5 mb-8 text-gray-800 whitespace-pre-wrap">
+      <%= @issue.description %>
+    </div>
+  <% else %>
+    <p class="text-sm text-gray-500 italic mb-8">No description.</p>
+  <% end %>
+
+  <section class="space-y-4 mb-6">
+    <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+      Comments (<%= @comments.size %>)
+    </h2>
+
+    <% @comments.each do |comment| %>
+      <%= render "comments/comment", comment: comment %>
+    <% end %>
+
+    <% if @comments.empty? %>
+      <p class="text-sm text-gray-500 italic">No comments yet.</p>
+    <% end %>
+  </section>
+
+  <section class="bg-white border border-gray-200 rounded-md p-4">
+    <%= form_with model: @comment, url: project_issue_comments_path(@project, @issue), class: "space-y-3" do |f| %>
+      <%= f.label :body, "Add a comment", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.text_area :body, rows: 4, required: true,
+            placeholder: "Mention someone with @their-email@example.com. Markdown-light supported.",
+            class: "block w-full rounded-md border border-gray-300 px-3 py-2 text-sm" %>
+      <%= f.submit "Comment", class: "bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800 cursor-pointer" %>
+    <% end %>
+  </section>
+</div>

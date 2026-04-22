@@ -1,0 +1,24 @@
+<div class="bg-white border border-gray-200 rounded-md p-4">
+  <div class="flex items-center justify-between mb-2">
+    <div class="text-sm">
+      <span class="font-medium text-gray-900"><%= comment.user.email_address %></span>
+      <span class="text-gray-400">·</span>
+      <span class="text-gray-500"><%= time_ago_in_words(comment.created_at) %> ago</span>
+    </div>
+  </div>
+
+  <% if comment.mentions.any? %>
+    <div class="text-xs text-gray-500 mb-2">
+      Mentions:
+      <% comment.mentions.each do |mention| %>
+        <span class="inline-flex items-center px-2 py-0.5 bg-blue-50 text-blue-800 rounded-full ml-1">
+          @<%= mention.user.email_address %>
+        </span>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="text-gray-800 whitespace-pre-wrap text-sm">
+    <%= highlight_mentions(comment.body) %>
+  </div>
+</div>

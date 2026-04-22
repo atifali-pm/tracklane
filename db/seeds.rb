@@ -37,4 +37,28 @@ Membership.find_or_create_by!(user: bob,   organization: globex) { |m| m.role = 
   end
 end
 
-puts "Seeded: #{Organization.count} orgs, #{User.count} users, #{Membership.count} memberships, #{Project.count} projects"
+website   = Project.find_by!(slug: "website-redesign")
+mobile    = Project.find_by!(slug: "mobile-app-v2")
+payments  = Project.find_by!(slug: "payments-gateway")
+
+[
+  [ website,  "Pick a typography pair",              "open",         "high",    alice, alice ],
+  [ website,  "Audit accessibility of nav",          "in_progress",  "medium",  alice, alice ],
+  [ website,  "Port blog template to Tailwind v4",   "done",         "low",     alice, nil   ],
+  [ mobile,   "Set up Expo build pipeline",          "open",         "high",    alice, nil   ],
+  [ mobile,   "Draft API contract for v2",           "in_review",    "urgent",  alice, alice ],
+  [ payments, "Spike: Stripe vs Adyen",              "in_progress",  "urgent",  bob,   bob   ],
+  [ payments, "Write rollback plan",                 "blocked",      "high",    bob,   bob   ],
+].each do |project, title, status, priority, reporter, assignee|
+  next if project.issues.exists?(title: title)
+  project.issues.create!(
+    title: title,
+    status: status,
+    priority: priority,
+    reporter: reporter,
+    assignee: assignee,
+    description: "Seeded issue for demo purposes."
+  )
+end
+
+puts "Seeded: #{Organization.count} orgs, #{User.count} users, #{Membership.count} memberships, #{Project.count} projects, #{Issue.count} issues"

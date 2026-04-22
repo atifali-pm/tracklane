@@ -33,7 +33,38 @@
     <p class="text-sm text-gray-500 italic">No description yet.</p>
   <% end %>
 
-  <div class="mt-8 border border-dashed border-gray-300 rounded-md p-6 text-center text-gray-500 text-sm">
-    Issues land in Phase 3.
+  <div class="mt-8 bg-white border border-gray-200 rounded-md p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Issues</h2>
+      <%= link_to "All issues", project_issues_path(@project), class: "text-sm text-gray-600 hover:text-gray-900" %>
+    </div>
+
+    <% recent = @project.issues.includes(:reporter, :assignee).ordered.limit(5) %>
+    <% if recent.any? %>
+      <ul class="divide-y divide-gray-200">
+        <% recent.each do |issue| %>
+          <li class="py-3">
+            <%= link_to [ @project, issue ], class: "flex items-center justify-between" do %>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-400 font-mono">#<%= issue.number %></span>
+                <span class="text-gray-900"><%= issue.title %></span>
+              </div>
+              <span class="inline-flex items-center px-2 py-0.5 text-xs rounded-full capitalize <%= status_badge_class(issue.status) %>">
+                <%= issue.status.humanize %>
+              </span>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-sm text-gray-500">No issues yet.</p>
+    <% end %>
+
+    <% if %w[admin manager member].include?(current_membership&.role.to_s) %>
+      <div class="mt-4">
+        <%= link_to "New issue", new_project_issue_path(@project),
+              class: "inline-flex items-center bg-gray-900 text-white rounded-md px-3 py-1.5 text-sm hover:bg-gray-800" %>
+      </div>
+    <% end %>
   </div>
 </div>

@@ -19,6 +19,7 @@ class ProjectsController < ApplicationController
     @project.organization = Current.organization
 
     if @project.save
+      ProjectTemplate.apply!(params[:template], @project, reporter: Current.user) if params[:template].present?
       redirect_to @project, notice: "Project created."
     else
       render :new, status: :unprocessable_content

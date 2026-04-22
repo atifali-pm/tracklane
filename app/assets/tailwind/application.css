@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+/* Enable class-based dark mode driven by the data-theme="dark" attribute
+   on <html>. The TenantScoping layout sets this from the user's saved
+   preference (or resolves "system" via a no-JS meta fallback). */
+@custom-variant dark (&:where([data-theme="dark"] *));

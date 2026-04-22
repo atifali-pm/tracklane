@@ -8,6 +8,9 @@ class TenantIsolationTest < ActiveSupport::TestCase
   setup do
     # Clear tables the isolation test manages so the scenario is deterministic
     # regardless of fixtures.
+    Mention.delete_all
+    Comment.delete_all
+    Issue.delete_all
     Invitation.delete_all
     Project.delete_all
     Membership.delete_all
@@ -30,6 +33,15 @@ class TenantIsolationTest < ActiveSupport::TestCase
 
     @acme_invite   = Invitation.create!(organization: @acme,   invited_by: @alice, email: "new-acme@iso.test",   role: :member)
     @globex_invite = Invitation.create!(organization: @globex, invited_by: @bob,   email: "new-globex@iso.test", role: :member)
+
+    @acme_issue   = Issue.create!(project: @acme_p1,   reporter: @alice, title: "Acme bug")
+    @globex_issue = Issue.create!(project: @globex_p1, reporter: @bob,   title: "Globex bug")
+
+    @acme_comment   = Comment.create!(issue: @acme_issue,   user: @alice, organization: @acme,   body: "acme note")
+    @globex_comment = Comment.create!(issue: @globex_issue, user: @bob,   organization: @globex, body: "globex note")
+
+    @acme_mention   = Mention.create!(comment: @acme_comment,   user: @alice, organization: @acme)
+    @globex_mention = Mention.create!(comment: @globex_comment, user: @bob,   organization: @globex)
   end
 
   # --- projects ------------------------------------------------------------
@@ -225,6 +237,127 @@ class TenantIsolationTest < ActiveSupport::TestCase
     )
     assert row["relrowsecurity"]
     assert row["relforcerowsecurity"]
+  end
+
+  # --- issues --------------------------------------------------------------
+
+  test "issues visible only from their own tenant" do
+    as_app(user: @alice, organization: @acme) do
+      assert_equal [ "Acme bug" ], Issue.pluck(:title)
+    end
+    as_app(user: @bob, organization: @globex) do
+      assert_equal [ "Globex bug" ], Issue.pluck(:title)
+    end
+  end
+
+  test "cross-tenant issue INSERT is blocked" do
+    as_app(user: @alice, organization: @acme) do
+      assert_raises ActiveRecord::StatementInvalid do
+        Issue.create!(project: @globex_p1, organization: @globex, reporter: @alice, title: "Rogue", number: 99)
+      end
+    end
+  end
+
+  test "cross-tenant issue UPDATE affects zero rows" do
+    as_app(user: @alice, organization: @acme) do
+      affected = Issue.where(id: @globex_issue.id).update_all(title: "Hijacked")
+      assert_equal 0, affected
+    end
+    assert_equal "Globex bug", @globex_issue.reload.title
+  end
+
+  test "cross-tenant issue DELETE affects zero rows" do
+    as_app(user: @alice, organization: @acme) do
+      affected = Issue.where(id: @globex_issue.id).delete_all
+      assert_equal 0, affected
+    end
+    assert Issue.exists?(@globex_issue.id)
+  end
+
+  test "issues table has RLS enabled and forced" do
+    row = ApplicationRecord.connection.select_one(
+      "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname = 'issues'"
+    )
+    assert row["relrowsecurity"]
+    assert row["relforcerowsecurity"]
+  end
+
+  # --- comments ------------------------------------------------------------
+
+  test "comments visible only from their own tenant" do
+    as_app(user: @alice, organization: @acme) do
+      assert_equal [ "acme note" ], Comment.pluck(:body)
+    end
+    as_app(user: @bob, organization: @globex) do
+      assert_equal [ "globex note" ], Comment.pluck(:body)
+    end
+  end
+
+  test "cross-tenant comment INSERT is blocked" do
+    as_app(user: @alice, organization: @acme) do
+      assert_raises ActiveRecord::StatementInvalid do
+        Comment.create!(issue: @globex_issue, user: @alice, organization: @globex, body: "rogue")
+      end
+    end
+  end
+
+  test "cross-tenant comment UPDATE affects zero rows" do
+    as_app(user: @alice, organization: @acme) do
+      affected = Comment.where(id: @globex_comment.id).update_all(body: "hijacked")
+      assert_equal 0, affected
+    end
+    assert_equal "globex note", @globex_comment.reload.body
+  end
+
+  test "comments table has RLS enabled and forced" do
+    row = ApplicationRecord.connection.select_one(
+      "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname = 'comments'"
+    )
+    assert row["relrowsecurity"]
+    assert row["relforcerowsecurity"]
+  end
+
+  # --- mentions ------------------------------------------------------------
+
+  test "mentions visible only from their own tenant" do
+    as_app(user: @alice, organization: @acme) do
+      assert_equal [ @acme_mention.id ], Mention.pluck(:id)
+    end
+  end
+
+  test "cross-tenant mention INSERT is blocked" do
+    as_app(user: @alice, organization: @acme) do
+      assert_raises ActiveRecord::StatementInvalid do
+        Mention.create!(comment: @globex_comment, user: @alice, organization: @globex)
+      end
+    end
+  end
+
+  test "mentions table has RLS enabled and forced" do
+    row = ApplicationRecord.connection.select_one(
+      "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname = 'mentions'"
+    )
+    assert row["relrowsecurity"]
+    assert row["relforcerowsecurity"]
+  end
+
+  # --- issue uniqueness ----------------------------------------------------
+
+  test "issue number uniqueness is scoped per project" do
+    dup = Issue.new(project: @acme_p1, organization: @acme, reporter: @alice, title: "Dup", number: 1)
+    refute dup.valid?
+
+    other_project = Issue.new(project: @acme_p2, organization: @acme, reporter: @alice, title: "OK", number: 1)
+    assert other_project.valid?
+  end
+
+  test "issue auto-numbers per project using the counter column" do
+    next_number = nil
+    as_app(user: @alice, organization: @acme) do
+      issue = @acme_p1.issues.create!(reporter: @alice, title: "Second")
+      next_number = issue.number
+    end
+    assert_equal 2, next_number
   end
 
   # --- regression guards ---------------------------------------------------

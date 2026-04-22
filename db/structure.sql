@@ -40,6 +40,42 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: comments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.comments (
+    id bigint NOT NULL,
+    issue_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    organization_id bigint NOT NULL,
+    body text NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.comments FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: comments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.comments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: comments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.comments_id_seq OWNED BY public.comments.id;
+
+
+--
 -- Name: invitations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -79,6 +115,48 @@ ALTER SEQUENCE public.invitations_id_seq OWNED BY public.invitations.id;
 
 
 --
+-- Name: issues; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.issues (
+    id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    organization_id bigint NOT NULL,
+    reporter_id bigint NOT NULL,
+    assignee_id bigint,
+    number integer NOT NULL,
+    title character varying NOT NULL,
+    description text,
+    status integer DEFAULT 0 NOT NULL,
+    priority integer DEFAULT 1 NOT NULL,
+    due_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.issues FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: issues_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.issues_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: issues_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.issues_id_seq OWNED BY public.issues.id;
+
+
+--
 -- Name: memberships; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -111,6 +189,41 @@ CREATE SEQUENCE public.memberships_id_seq
 --
 
 ALTER SEQUENCE public.memberships_id_seq OWNED BY public.memberships.id;
+
+
+--
+-- Name: mentions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mentions (
+    id bigint NOT NULL,
+    comment_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    organization_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.mentions FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: mentions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mentions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mentions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mentions_id_seq OWNED BY public.mentions.id;
 
 
 --
@@ -157,7 +270,8 @@ CREATE TABLE public.projects (
     description text,
     status integer DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    issues_counter integer DEFAULT 0 NOT NULL
 );
 
 ALTER TABLE ONLY public.projects FORCE ROW LEVEL SECURITY;
@@ -233,7 +347,8 @@ CREATE TABLE public.users (
     email_address character varying NOT NULL,
     password_digest character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    theme character varying DEFAULT 'system'::character varying NOT NULL
 );
 
 
@@ -257,6 +372,13 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: comments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.comments ALTER COLUMN id SET DEFAULT nextval('public.comments_id_seq'::regclass);
+
+
+--
 -- Name: invitations id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -264,10 +386,24 @@ ALTER TABLE ONLY public.invitations ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
+-- Name: issues id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.issues ALTER COLUMN id SET DEFAULT nextval('public.issues_id_seq'::regclass);
+
+
+--
 -- Name: memberships id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.memberships ALTER COLUMN id SET DEFAULT nextval('public.memberships_id_seq'::regclass);
+
+
+--
+-- Name: mentions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mentions ALTER COLUMN id SET DEFAULT nextval('public.mentions_id_seq'::regclass);
 
 
 --
@@ -307,6 +443,14 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 
 --
+-- Name: comments comments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.comments
+    ADD CONSTRAINT comments_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: invitations invitations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -315,11 +459,27 @@ ALTER TABLE ONLY public.invitations
 
 
 --
+-- Name: issues issues_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.issues
+    ADD CONSTRAINT issues_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: memberships memberships_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.memberships
     ADD CONSTRAINT memberships_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mentions mentions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mentions
+    ADD CONSTRAINT mentions_pkey PRIMARY KEY (id);
 
 
 --
@@ -363,6 +523,27 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: index_comments_on_issue_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_issue_id ON public.comments USING btree (issue_id);
+
+
+--
+-- Name: index_comments_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_organization_id ON public.comments USING btree (organization_id);
+
+
+--
+-- Name: index_comments_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_user_id ON public.comments USING btree (user_id);
+
+
+--
 -- Name: index_invitations_on_invited_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -391,6 +572,55 @@ CREATE UNIQUE INDEX index_invitations_on_token ON public.invitations USING btree
 
 
 --
+-- Name: index_issues_on_assignee_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_issues_on_assignee_id ON public.issues USING btree (assignee_id);
+
+
+--
+-- Name: index_issues_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_issues_on_organization_id ON public.issues USING btree (organization_id);
+
+
+--
+-- Name: index_issues_on_priority; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_issues_on_priority ON public.issues USING btree (priority);
+
+
+--
+-- Name: index_issues_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_issues_on_project_id ON public.issues USING btree (project_id);
+
+
+--
+-- Name: index_issues_on_project_id_and_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_issues_on_project_id_and_number ON public.issues USING btree (project_id, number);
+
+
+--
+-- Name: index_issues_on_reporter_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_issues_on_reporter_id ON public.issues USING btree (reporter_id);
+
+
+--
+-- Name: index_issues_on_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_issues_on_status ON public.issues USING btree (status);
+
+
+--
 -- Name: index_memberships_on_organization_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -409,6 +639,34 @@ CREATE INDEX index_memberships_on_user_id ON public.memberships USING btree (use
 --
 
 CREATE UNIQUE INDEX index_memberships_on_user_id_and_organization_id ON public.memberships USING btree (user_id, organization_id);
+
+
+--
+-- Name: index_mentions_on_comment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mentions_on_comment_id ON public.mentions USING btree (comment_id);
+
+
+--
+-- Name: index_mentions_on_comment_id_and_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_mentions_on_comment_id_and_user_id ON public.mentions USING btree (comment_id, user_id);
+
+
+--
+-- Name: index_mentions_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mentions_on_organization_id ON public.mentions USING btree (organization_id);
+
+
+--
+-- Name: index_mentions_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mentions_on_user_id ON public.mentions USING btree (user_id);
 
 
 --
@@ -447,11 +705,43 @@ CREATE UNIQUE INDEX index_users_on_email_address ON public.users USING btree (em
 
 
 --
+-- Name: comments fk_rails_03de2dc08c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.comments
+    ADD CONSTRAINT fk_rails_03de2dc08c FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: invitations fk_rails_0fe4c14f0e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.invitations
     ADD CONSTRAINT fk_rails_0fe4c14f0e FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
+-- Name: mentions fk_rails_1b711e94aa; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mentions
+    ADD CONSTRAINT fk_rails_1b711e94aa FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: mentions fk_rails_317de4030a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mentions
+    ADD CONSTRAINT fk_rails_317de4030a FOREIGN KEY (comment_id) REFERENCES public.comments(id);
+
+
+--
+-- Name: mentions fk_rails_466352825b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mentions
+    ADD CONSTRAINT fk_rails_466352825b FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
 
 
 --
@@ -471,6 +761,22 @@ ALTER TABLE ONLY public.sessions
 
 
 --
+-- Name: issues fk_rails_899c8f3231; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.issues
+    ADD CONSTRAINT fk_rails_899c8f3231 FOREIGN KEY (project_id) REFERENCES public.projects(id);
+
+
+--
+-- Name: comments fk_rails_90ef1875d1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.comments
+    ADD CONSTRAINT fk_rails_90ef1875d1 FOREIGN KEY (issue_id) REFERENCES public.issues(id);
+
+
+--
 -- Name: memberships fk_rails_99326fb65d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -487,12 +793,50 @@ ALTER TABLE ONLY public.projects
 
 
 --
+-- Name: comments fk_rails_b5b64d6bc9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.comments
+    ADD CONSTRAINT fk_rails_b5b64d6bc9 FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
+-- Name: issues fk_rails_ccc5514bad; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.issues
+    ADD CONSTRAINT fk_rails_ccc5514bad FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
 -- Name: invitations fk_rails_d799c974a1; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.invitations
     ADD CONSTRAINT fk_rails_d799c974a1 FOREIGN KEY (invited_by_id) REFERENCES public.users(id);
 
+
+--
+-- Name: issues fk_rails_e760f5afbf; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.issues
+    ADD CONSTRAINT fk_rails_e760f5afbf FOREIGN KEY (reporter_id) REFERENCES public.users(id);
+
+
+--
+-- Name: issues fk_rails_ff669b5916; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.issues
+    ADD CONSTRAINT fk_rails_ff669b5916 FOREIGN KEY (assignee_id) REFERENCES public.users(id);
+
+
+--
+-- Name: comments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: invitations; Type: ROW SECURITY; Schema: public; Owner: -
@@ -506,6 +850,12 @@ ALTER TABLE public.invitations ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY invitations_select_by_token ON public.invitations FOR SELECT USING (true);
 
+
+--
+-- Name: issues; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.issues ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: memberships; Type: ROW SECURITY; Schema: public; Owner: -
@@ -528,16 +878,43 @@ CREATE POLICY memberships_write_tenant ON public.memberships USING ((organizatio
 
 
 --
+-- Name: mentions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.mentions ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: projects; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: comments tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.comments USING ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint)) WITH CHECK ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint));
+
+
+--
 -- Name: invitations tenant_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY tenant_isolation ON public.invitations USING ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint)) WITH CHECK ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint));
+
+
+--
+-- Name: issues tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.issues USING ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint)) WITH CHECK ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint));
+
+
+--
+-- Name: mentions tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.mentions USING ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint)) WITH CHECK ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint));
 
 
 --
@@ -554,6 +931,9 @@ CREATE POLICY tenant_isolation ON public.projects USING ((organization_id = (NUL
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260422180251'),
+('20260422174703'),
+('20260422174159'),
 ('20260422172302'),
 ('20260422171633'),
 ('20260422170439'),
