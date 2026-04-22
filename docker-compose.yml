@@ -1,0 +1,23 @@
+name: tracklane
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: tracklane-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tracklane
+      POSTGRES_PASSWORD: tracklane
+      POSTGRES_DB: tracklane_development
+    ports:
+      - "5460:5432"
+    volumes:
+      - tracklane_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tracklane -d tracklane_development"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  tracklane_pg_data:
