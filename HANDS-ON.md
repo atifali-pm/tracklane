@@ -86,15 +86,16 @@ Keep decisions log here as the build progresses:
 - `2026-04-22` — Project spec committed. Name placeholder: Tracklane. Stack locked: Rails 8, Postgres 16, Solid Queue/Cable/Cache, Hotwire, Tailwind, Kamal 2. MIT license. Ports 8020/5460.
 - `2026-04-22` — Phase 1 landed. Toolchain: mise + Ruby 3.3.11, Rails 8.1.3, neighbor gem for pgvector. Postgres 16 + pgvector via `docker-compose.yml` on port 5460. Generated native auth (User, Session, Current), Organization + Membership models, pgvector extension migration, RLS scaffold migration (`apply_tenant_rls` helper applied to `memberships`). Dashboard at `/` verifies end-to-end login with seeded alice@tracklane.dev / password.
 - `2026-04-22` — Phase 2 role split landed. Postgres runs two roles: `tracklane` (owner, runs migrations) and `tracklane_app` (NOSUPERUSER NOBYPASSRLS, what Rails connects as at runtime). Role creation in `db/init/01-create-app-role.sql`; DML grants applied by the `GrantAppRoleDml` migration and re-applied after every `db:migrate / db:schema:load / db:test:prepare` via `lib/tasks/grants.rake`. `schema_format` switched to `:sql` so RLS policies survive in `db/structure.sql`. Run database tasks via `bin/db <task>` (wraps rails with the owner credentials); the regular app connection defaults to `tracklane_app`.
+- `2026-04-22` — Phase 2 landed. `TenantScoping` ApplicationController concern wraps every request in a transaction and SETs `app.current_user_id` + `app.current_organization_id` in ordered before_actions so RLS enforces per-request. Split memberships policy (own-rows-or-tenant for SELECT, tenant-only for writes) lets the org switcher see a user's orgs across tenants. `Project` model with CRUD, role-gated via `require_role` helper (admin + manager mutate, others read). `Invitation` model with token-based acceptance, open SELECT policy for token lookups and strict tenant writes. Cross-tenant isolation test suite in `test/integration/tenant_isolation_test.rb` — 25 tests, 50 assertions, all green. Phase 1 RLS follow-ups closed.
 
-## Phase 1 follow-ups
+## Phase 1 follow-ups (closed 2026-04-22)
 
-The RLS policy is in place but does not enforce yet: the `tracklane` dev role in Postgres is a superuser (Docker default), and superusers bypass RLS even with `FORCE ROW LEVEL SECURITY`. Before writing the 20+ cross-tenant integration tests from the spec:
+All four items resolved in Phase 2:
 
-1. Split Postgres roles: introduce `tracklane_app` (NOSUPERUSER NOBYPASSRLS) in a Compose init script; Rails connects as that role while migrations run as `tracklane`.
-2. Add `TenantScoping` concern in `ApplicationController` that sets `SET LOCAL app.current_organization_id = <id>` per request.
-3. Extend RLS to every tenant-scoped table added in later phases (call `apply_tenant_rls(:table)` in its own migration).
-4. Write the isolation test suite (pattern from StoreBridge's 16-assertion suite).
+1. ✅ Postgres roles split (`tracklane` owner, `tracklane_app` app role).
+2. ✅ `TenantScoping` concern sets both user and organization GUCs per request inside a transaction.
+3. ✅ `apply_tenant_rls(:table)` helper extracted into `config/initializers/rls_migration_helpers.rb`; invoked by projects and invitations migrations.
+4. ✅ Isolation suite in `test/integration/tenant_isolation_test.rb`, 25 tests / 50 assertions.
 
 ## Related docs
 
