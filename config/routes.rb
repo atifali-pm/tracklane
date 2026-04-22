@@ -4,6 +4,8 @@ Rails.application.routes.draw do
   patch "switch_organization/:slug" => "current_organizations#update", as: :switch_organization
 
   resources :projects, param: :slug
+  resources :invitations, only: %i[index new create destroy], param: :token
+  resource :invitation_acceptance, only: %i[show create], path: "invitations/accept/:token"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

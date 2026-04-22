@@ -40,6 +40,45 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: invitations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.invitations (
+    id bigint NOT NULL,
+    organization_id bigint NOT NULL,
+    invited_by_id bigint NOT NULL,
+    email character varying NOT NULL,
+    role integer DEFAULT 2 NOT NULL,
+    token character varying NOT NULL,
+    expires_at timestamp(6) without time zone NOT NULL,
+    accepted_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.invitations FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: invitations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.invitations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: invitations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.invitations_id_seq OWNED BY public.invitations.id;
+
+
+--
 -- Name: memberships; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -218,6 +257,13 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: invitations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invitations ALTER COLUMN id SET DEFAULT nextval('public.invitations_id_seq'::regclass);
+
+
+--
 -- Name: memberships id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -258,6 +304,14 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: invitations invitations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invitations
+    ADD CONSTRAINT invitations_pkey PRIMARY KEY (id);
 
 
 --
@@ -306,6 +360,34 @@ ALTER TABLE ONLY public.sessions
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: index_invitations_on_invited_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_invitations_on_invited_by_id ON public.invitations USING btree (invited_by_id);
+
+
+--
+-- Name: index_invitations_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_invitations_on_organization_id ON public.invitations USING btree (organization_id);
+
+
+--
+-- Name: index_invitations_on_organization_id_and_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_invitations_on_organization_id_and_email ON public.invitations USING btree (organization_id, email) WHERE (accepted_at IS NULL);
+
+
+--
+-- Name: index_invitations_on_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_invitations_on_token ON public.invitations USING btree (token);
 
 
 --
@@ -365,6 +447,14 @@ CREATE UNIQUE INDEX index_users_on_email_address ON public.users USING btree (em
 
 
 --
+-- Name: invitations fk_rails_0fe4c14f0e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invitations
+    ADD CONSTRAINT fk_rails_0fe4c14f0e FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
 -- Name: memberships fk_rails_64267aab58; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -397,6 +487,27 @@ ALTER TABLE ONLY public.projects
 
 
 --
+-- Name: invitations fk_rails_d799c974a1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invitations
+    ADD CONSTRAINT fk_rails_d799c974a1 FOREIGN KEY (invited_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: invitations; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.invitations ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: invitations invitations_select_by_token; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY invitations_select_by_token ON public.invitations FOR SELECT USING (true);
+
+
+--
 -- Name: memberships; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -423,6 +534,13 @@ CREATE POLICY memberships_write_tenant ON public.memberships USING ((organizatio
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: invitations tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.invitations USING ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint)) WITH CHECK ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint));
+
+
+--
 -- Name: projects tenant_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -436,6 +554,7 @@ CREATE POLICY tenant_isolation ON public.projects USING ((organization_id = (NUL
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260422172302'),
 ('20260422171633'),
 ('20260422170439'),
 ('20260422163957'),

@@ -9,6 +9,9 @@
         <% if current_organization %>
           <div class="flex items-center gap-5">
             <%= link_to "Projects", projects_path, class: "text-sm text-gray-700 hover:text-gray-900" %>
+            <% if current_membership&.admin? %>
+              <%= link_to "Invitations", invitations_path, class: "text-sm text-gray-700 hover:text-gray-900" %>
+            <% end %>
 
             <div class="text-sm text-gray-500">
               <span class="text-gray-400">org:</span>

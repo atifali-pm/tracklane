@@ -1,0 +1,44 @@
+<div class="max-w-3xl mx-auto py-10 px-4">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold">Invitations</h1>
+      <p class="text-sm text-gray-500">Pending invites for <%= current_organization.name %>.</p>
+    </div>
+    <%= link_to "New invitation", new_invitation_path,
+          class: "bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800" %>
+  </div>
+
+  <% if @pending.any? %>
+    <ul class="divide-y divide-gray-200 border border-gray-200 rounded-md bg-white">
+      <% @pending.each do |invitation| %>
+        <li class="px-4 py-4">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <div class="font-medium text-gray-900"><%= invitation.email %></div>
+              <div class="text-xs text-gray-500 capitalize">
+                <%= invitation.role %>
+                <span class="text-gray-400">·</span>
+                invited by <%= invitation.invited_by.email_address %>
+                <span class="text-gray-400">·</span>
+                expires <%= time_ago_in_words(invitation.expires_at) %> from now
+              </div>
+            </div>
+            <%= button_to "Revoke", invitation_path(invitation.token),
+                  method: :delete,
+                  data: { turbo_confirm: "Revoke invitation for #{invitation.email}?" },
+                  class: "text-sm border border-red-300 text-red-700 rounded-md px-3 py-1.5 hover:bg-red-50 cursor-pointer" %>
+          </div>
+          <div class="bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 break-all">
+            <%= url_for controller: "invitation_acceptances", action: :show, token: invitation.token, only_path: false, host: request.host_with_port %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <div class="border border-dashed border-gray-300 rounded-md p-8 text-center bg-white">
+      <p class="text-gray-600 mb-4">No pending invitations.</p>
+      <%= link_to "Invite someone", new_invitation_path,
+            class: "bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800" %>
+    </div>
+  <% end %>
+</div>
