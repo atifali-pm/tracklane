@@ -1,21 +1,44 @@
-<div class="max-w-3xl mx-auto py-12 px-4">
-  <h1 class="text-2xl font-semibold mb-2">Tracklane</h1>
-  <p class="text-gray-600 mb-8">Signed in as <%= Current.user.email_address %>.</p>
+<div class="max-w-5xl mx-auto py-10 px-4">
+  <% if current_organization %>
+    <h1 class="text-2xl font-semibold mb-1"><%= current_organization.name %></h1>
+    <p class="text-gray-500 mb-10 text-sm">
+      You are <%= current_membership&.role %> in this organization.
+    </p>
 
-  <h2 class="text-lg font-medium mb-3">Your organizations</h2>
-  <ul class="divide-y divide-gray-200 border border-gray-200 rounded-md">
-    <% @memberships.each do |m| %>
-      <li class="px-4 py-3 flex items-center justify-between">
-        <div>
-          <div class="font-medium"><%= m.organization.name %></div>
-          <div class="text-sm text-gray-500"><%= m.organization.slug %></div>
-        </div>
-        <span class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">
-          <%= m.role %>
-        </span>
-      </li>
-    <% end %>
-  </ul>
+    <section class="mb-10">
+      <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Projects</h2>
+      <div class="border border-dashed border-gray-300 rounded-md p-8 text-center text-gray-500">
+        No projects yet. Project CRUD lands next.
+      </div>
+    </section>
+  <% else %>
+    <h1 class="text-2xl font-semibold mb-2">Welcome to Tracklane</h1>
+    <p class="text-gray-600">
+      You are not a member of any organization yet. Ask an admin to invite you.
+    </p>
+  <% end %>
 
-  <%= button_to "Sign out", session_path, method: :delete, class: "mt-8 text-sm text-gray-600 hover:text-gray-900 underline" %>
+  <section>
+    <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">All your organizations</h2>
+    <ul class="divide-y divide-gray-200 border border-gray-200 rounded-md bg-white">
+      <% @memberships.each do |m| %>
+        <li class="px-4 py-3 flex items-center justify-between">
+          <div>
+            <div class="font-medium text-gray-900"><%= m.organization.name %></div>
+            <div class="text-xs text-gray-500"><%= m.organization.slug %></div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700 capitalize">
+              <%= m.role %>
+            </span>
+            <% unless m.organization == current_organization %>
+              <%= button_to "Switch", switch_organization_path(m.organization.slug),
+                    method: :patch,
+                    class: "text-xs text-gray-600 hover:text-gray-900 underline" %>
+            <% end %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  </section>
 </div>

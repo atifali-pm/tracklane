@@ -329,10 +329,17 @@ ALTER TABLE ONLY public.memberships
 ALTER TABLE public.memberships ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: memberships tenant_isolation; Type: POLICY; Schema: public; Owner: -
+-- Name: memberships memberships_select_own_or_tenant; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY tenant_isolation ON public.memberships USING ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint)) WITH CHECK ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint));
+CREATE POLICY memberships_select_own_or_tenant ON public.memberships FOR SELECT USING (((user_id = (NULLIF(current_setting('app.current_user_id'::text, true), ''::text))::bigint) OR (organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint)));
+
+
+--
+-- Name: memberships memberships_write_tenant; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY memberships_write_tenant ON public.memberships USING ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint)) WITH CHECK ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint));
 
 
 --
@@ -342,6 +349,7 @@ CREATE POLICY tenant_isolation ON public.memberships USING ((organization_id = (
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260422170439'),
 ('20260422163957'),
 ('20260422131515'),
 ('20260422131514'),

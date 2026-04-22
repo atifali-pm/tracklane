@@ -1,0 +1,57 @@
+<% if Current.user %>
+  <nav class="border-b border-gray-200 bg-white">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-8">
+        <%= link_to root_path, class: "font-semibold text-gray-900 hover:text-gray-700" do %>
+          Tracklane
+        <% end %>
+
+        <% if current_organization %>
+          <div class="text-sm text-gray-500">
+            <span class="text-gray-400">org:</span>
+            <span class="font-medium text-gray-800"><%= current_organization.name %></span>
+            <% if current_membership %>
+              <span class="ml-2 inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600 capitalize">
+                <%= current_membership.role %>
+              </span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <% if available_organizations.count > 1 %>
+          <details class="relative">
+            <summary class="cursor-pointer list-none text-sm text-gray-600 hover:text-gray-900">
+              Switch org
+            </summary>
+            <div class="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-md shadow-sm z-10">
+              <% available_organizations.each do |org| %>
+                <%= button_to switch_organization_path(org.slug),
+                      method: :patch,
+                      class: "w-full text-left px-3 py-2 text-sm hover:bg-gray-50 #{'font-semibold text-gray-900' if org == current_organization}" do %>
+                  <%= org.name %>
+                  <div class="text-xs text-gray-500"><%= org.slug %></div>
+                <% end %>
+              <% end %>
+            </div>
+          </details>
+        <% end %>
+
+        <span class="text-sm text-gray-500"><%= Current.user.email_address %></span>
+        <%= button_to "Sign out", session_path, method: :delete, class: "text-sm text-gray-600 hover:text-gray-900 underline" %>
+      </div>
+    </div>
+  </nav>
+<% end %>
+
+<% if flash[:notice].present? %>
+  <div class="bg-green-50 border-b border-green-200 text-green-800 text-sm px-4 py-2 text-center">
+    <%= flash[:notice] %>
+  </div>
+<% end %>
+<% if flash[:alert].present? %>
+  <div class="bg-red-50 border-b border-red-200 text-red-800 text-sm px-4 py-2 text-center">
+    <%= flash[:alert] %>
+  </div>
+<% end %>
