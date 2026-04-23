@@ -1,0 +1,10 @@
+Hi,
+
+<%= @inviter.email_address %> invited you to join <%= @organization.name %> on Tracklane as a <%= @invitation.role %>.
+
+Accept the invitation:
+<%= @accept_url %>
+
+This link expires <%= @invitation.expires_at.to_fs(:long) %>.
+
+— Tracklane

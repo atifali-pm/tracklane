@@ -1,0 +1,12 @@
+Hi <%= @recipient.email_address %>,
+
+<%= @comment.user.email_address %> mentioned you on <%= @project.slug %>-#<%= @issue.number %> "<%= @issue.title %>" in <%= @organization.name %>.
+
+The comment:
+
+<%= @comment.body %>
+
+View the thread:
+<%= project_issue_url(@project, @issue, host: "localhost", port: 8020) %>
+
+— Tracklane

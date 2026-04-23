@@ -42,6 +42,11 @@ class TenantIsolationTest < ActiveSupport::TestCase
 
     @acme_mention   = Mention.create!(comment: @acme_comment,   user: @alice, organization: @acme)
     @globex_mention = Mention.create!(comment: @globex_comment, user: @bob,   organization: @globex)
+
+    @acme_event = ActivityEvent.create!(organization: @acme,   actor: @alice, action: "issue.opened",
+      subject_type: "Issue", subject_id: @acme_issue.id, metadata: { title: "Acme bug" })
+    @globex_event = ActivityEvent.create!(organization: @globex, actor: @bob,   action: "issue.opened",
+      subject_type: "Issue", subject_id: @globex_issue.id, metadata: { title: "Globex bug" })
   end
 
   # --- projects ------------------------------------------------------------
@@ -351,6 +356,49 @@ class TenantIsolationTest < ActiveSupport::TestCase
   test "mentions table has RLS enabled and forced" do
     row = ApplicationRecord.connection.select_one(
       "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname = 'mentions'"
+    )
+    assert row["relrowsecurity"]
+    assert row["relforcerowsecurity"]
+  end
+
+  # --- activity events -----------------------------------------------------
+
+  test "activity events visible only from their own tenant" do
+    as_app(user: @alice, organization: @acme) do
+      assert_equal [ @acme_event.id ], ActivityEvent.pluck(:id)
+    end
+    as_app(user: @bob, organization: @globex) do
+      assert_equal [ @globex_event.id ], ActivityEvent.pluck(:id)
+    end
+  end
+
+  test "cross-tenant activity event INSERT is blocked by RLS WITH CHECK" do
+    # Go through raw SQL so AR's polymorphic belongs_to validation does not
+    # short-circuit the attempt; we want to prove the DB-level RLS guard is
+    # what stops the write.
+    as_app(user: @alice, organization: @acme) do
+      assert_raises ActiveRecord::StatementInvalid do
+        ApplicationRecord.connection.execute(<<~SQL)
+          INSERT INTO activity_events
+            (organization_id, actor_id, action, subject_type, subject_id, metadata, created_at, updated_at)
+          VALUES
+            (#{@globex.id}, #{@alice.id}, 'issue.opened', 'Issue', #{@globex_issue.id}, '{}', now(), now());
+        SQL
+      end
+    end
+  end
+
+  test "cross-tenant activity event UPDATE affects zero rows" do
+    as_app(user: @alice, organization: @acme) do
+      affected = ActivityEvent.where(id: @globex_event.id).update_all(action: "hijacked")
+      assert_equal 0, affected
+    end
+    assert_equal "issue.opened", @globex_event.reload.action
+  end
+
+  test "activity events table has RLS enabled and forced" do
+    row = ApplicationRecord.connection.select_one(
+      "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname = 'activity_events'"
     )
     assert row["relrowsecurity"]
     assert row["relforcerowsecurity"]

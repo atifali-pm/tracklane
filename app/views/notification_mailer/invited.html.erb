@@ -1,0 +1,17 @@
+<p>Hi,</p>
+
+<p>
+  <strong><%= @inviter.email_address %></strong> invited you to join
+  <strong><%= @organization.name %></strong> on Tracklane as a
+  <em><%= @invitation.role %></em>.
+</p>
+
+<p>
+  <%= link_to "Accept the invitation", @accept_url %>
+</p>
+
+<p style="color: #555; font-size: 0.9em;">
+  This link expires <%= @invitation.expires_at.to_fs(:long) %>.
+</p>
+
+<p style="color: #888; font-size: 0.9em;">— Tracklane</p>

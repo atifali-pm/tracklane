@@ -1,0 +1,17 @@
+<p>Hi <%= @recipient.email_address %>,</p>
+
+<p>
+  <strong><%= @comment.user.email_address %></strong> mentioned you on
+  <strong><%= @project.slug %>-#<%= @issue.number %></strong>
+  <em><%= @issue.title %></em> in <%= @organization.name %>.
+</p>
+
+<blockquote style="border-left: 3px solid #ddd; padding-left: 10px; color: #555;">
+  <%= simple_format(@comment.body) %>
+</blockquote>
+
+<p>
+  <%= link_to "View the thread", project_issue_url(@project, @issue, host: "localhost", port: 8020) %>
+</p>
+
+<p style="color: #888; font-size: 0.9em;">— Tracklane</p>

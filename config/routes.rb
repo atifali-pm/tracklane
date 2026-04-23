@@ -4,6 +4,10 @@ Rails.application.routes.draw do
   patch "switch_organization/:slug" => "current_organizations#update", as: :switch_organization
   resource :user_preferences, only: %i[update]
 
+  get "activity" => "activity_events#index", as: :activity
+
+  mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
+
   resources :projects, param: :slug do
     resource :board, only: %i[show]
     resources :issues, param: :number do

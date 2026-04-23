@@ -1,0 +1,13 @@
+Hi <%= @recipient.email_address %>,
+
+You were assigned <%= @project.slug %>-#<%= @issue.number %>: <%= @issue.title %>
+in <%= @organization.name %>.
+
+Status: <%= @issue.status.humanize %>
+Priority: <%= @issue.priority.humanize %>
+<% if @issue.due_date %>Due: <%= @issue.due_date.to_fs(:long) %><% end %>
+
+Open the issue:
+<%= project_issue_url(@project, @issue, host: "localhost", port: 8020) %>
+
+— Tracklane

@@ -12,6 +12,7 @@ class Invitation < ApplicationRecord
   before_validation :normalize_email
   before_validation :assign_token, on: :create
   before_validation :assign_expiry, on: :create
+  after_create_commit :record_created_event
 
   scope :pending, -> { where(accepted_at: nil).where("expires_at > ?", Time.current) }
   scope :expired, -> { where(accepted_at: nil).where("expires_at <= ?", Time.current) }
@@ -49,5 +50,11 @@ class Invitation < ApplicationRecord
       existing_user = User.find_by(email_address: email)
       return unless existing_user && Membership.exists?(user: existing_user, organization: organization)
       errors.add(:email, "is already a member of this organization")
+    end
+
+    def record_created_event
+      ActivityEvent.record!("invitation.created", subject: self,
+        metadata: { email: email, role: role })
+      NotificationMailer.invited(invitation_id: id).deliver_later
     end
 end

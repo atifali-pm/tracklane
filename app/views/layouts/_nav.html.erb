@@ -9,6 +9,7 @@
         <% if current_organization %>
           <div class="flex items-center gap-5">
             <%= link_to "Projects", projects_path, class: "text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" %>
+            <%= link_to "Activity", activity_path, class: "text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" %>
             <% if current_membership&.admin? %>
               <%= link_to "Invitations", invitations_path, class: "text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" %>
             <% end %>

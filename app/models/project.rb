@@ -11,6 +11,7 @@ class Project < ApplicationRecord
   validates :description, length: { maximum: 2_000 }
 
   before_validation :generate_slug, on: :create
+  after_create_commit :record_created_event
 
   scope :ordered, -> { order(:name) }
 
@@ -20,5 +21,9 @@ class Project < ApplicationRecord
     def generate_slug
       return if slug.present? || name.blank?
       self.slug = name.parameterize
+    end
+
+    def record_created_event
+      ActivityEvent.record!("project.created", subject: self, metadata: { slug: slug, name: name })
     end
 end

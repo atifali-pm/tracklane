@@ -1,0 +1,18 @@
+<p>Hi <%= @recipient.email_address %>,</p>
+
+<p>
+  You were assigned <strong><%= @project.slug %>-#<%= @issue.number %></strong>
+  <em><%= @issue.title %></em> in <%= @organization.name %>.
+</p>
+
+<ul>
+  <li>Status: <%= @issue.status.humanize %></li>
+  <li>Priority: <%= @issue.priority.humanize %></li>
+  <% if @issue.due_date %><li>Due: <%= @issue.due_date.to_fs(:long) %></li><% end %>
+</ul>
+
+<p>
+  <%= link_to "Open the issue", project_issue_url(@project, @issue, host: "localhost", port: 8020) %>
+</p>
+
+<p style="color: #888; font-size: 0.9em;">— Tracklane</p>

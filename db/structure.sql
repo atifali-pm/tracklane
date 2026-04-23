@@ -28,6 +28,44 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: activity_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.activity_events (
+    id bigint NOT NULL,
+    organization_id bigint NOT NULL,
+    actor_id bigint,
+    action character varying NOT NULL,
+    subject_type character varying NOT NULL,
+    subject_id bigint NOT NULL,
+    metadata jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.activity_events FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: activity_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.activity_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: activity_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.activity_events_id_seq OWNED BY public.activity_events.id;
+
+
+--
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -372,6 +410,13 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: activity_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.activity_events ALTER COLUMN id SET DEFAULT nextval('public.activity_events_id_seq'::regclass);
+
+
+--
 -- Name: comments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -432,6 +477,14 @@ ALTER TABLE ONLY public.sessions ALTER COLUMN id SET DEFAULT nextval('public.ses
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: activity_events activity_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.activity_events
+    ADD CONSTRAINT activity_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -520,6 +573,34 @@ ALTER TABLE ONLY public.sessions
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: index_activity_events_on_actor_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_activity_events_on_actor_id ON public.activity_events USING btree (actor_id);
+
+
+--
+-- Name: index_activity_events_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_activity_events_on_organization_id ON public.activity_events USING btree (organization_id);
+
+
+--
+-- Name: index_activity_events_on_organization_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_activity_events_on_organization_id_and_created_at ON public.activity_events USING btree (organization_id, created_at);
+
+
+--
+-- Name: index_activity_events_on_subject_type_and_subject_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_activity_events_on_subject_type_and_subject_id ON public.activity_events USING btree (subject_type, subject_id);
 
 
 --
@@ -745,6 +826,14 @@ ALTER TABLE ONLY public.mentions
 
 
 --
+-- Name: activity_events fk_rails_4a058a76d2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.activity_events
+    ADD CONSTRAINT fk_rails_4a058a76d2 FOREIGN KEY (actor_id) REFERENCES public.users(id);
+
+
+--
 -- Name: memberships fk_rails_64267aab58; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -825,12 +914,26 @@ ALTER TABLE ONLY public.issues
 
 
 --
+-- Name: activity_events fk_rails_f48aed71c3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.activity_events
+    ADD CONSTRAINT fk_rails_f48aed71c3 FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
 -- Name: issues fk_rails_ff669b5916; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.issues
     ADD CONSTRAINT fk_rails_ff669b5916 FOREIGN KEY (assignee_id) REFERENCES public.users(id);
 
+
+--
+-- Name: activity_events; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.activity_events ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: comments; Type: ROW SECURITY; Schema: public; Owner: -
@@ -890,6 +993,13 @@ ALTER TABLE public.mentions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: activity_events tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.activity_events USING ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint)) WITH CHECK ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint));
+
+
+--
 -- Name: comments tenant_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -931,6 +1041,7 @@ CREATE POLICY tenant_isolation ON public.projects USING ((organization_id = (NUL
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260423080634'),
 ('20260422180251'),
 ('20260422174703'),
 ('20260422174159'),
