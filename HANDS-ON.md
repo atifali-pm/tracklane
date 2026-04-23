@@ -89,15 +89,14 @@ Keep decisions log here as the build progresses:
 - `2026-04-22` — Phase 2 landed. `TenantScoping` ApplicationController concern wraps every request in a transaction and SETs `app.current_user_id` + `app.current_organization_id` in ordered before_actions so RLS enforces per-request. Split memberships policy (own-rows-or-tenant for SELECT, tenant-only for writes) lets the org switcher see a user's orgs across tenants. `Project` model with CRUD, role-gated via `require_role` helper (admin + manager mutate, others read). `Invitation` model with token-based acceptance, open SELECT policy for token lookups and strict tenant writes. Cross-tenant isolation test suite in `test/integration/tenant_isolation_test.rb` — 25 tests, 50 assertions, all green. Phase 1 RLS follow-ups closed.
 - `2026-04-22` — Phase 3 core landed (commit `0a407a3`). `Issue` model with per-project sequential number via `projects.issues_counter` UPDATE ... RETURNING, status + priority enums, optional assignee (validated to be an org member), due_date. `Comment` model denormalizes organization_id for RLS; after_create scans body for `@email@domain` tokens and writes `Mention` rows for org members. IssuesController nested under projects, role-gated (admin+manager any, member own reports, viewer read-only). `IssueTemplate` constants (bug/feature/task) prefill description via `?template=` param. `ProjectTemplate` constants (software/marketing/personal) seed 2 to 4 starter issues on project create via `?template=` param. Isolation suite extended to 51 tests / 121 assertions, all green.
 
-## Phase 3 polish remaining (tomorrow)
+## Phase 3 polish closed 2026-04-23
 
-Theme preference is scaffolded but not finished. What is already live: `users.theme` column (system/light/dark), `UserPreferencesController#update`, `ThemesHelper`, Tailwind v4 `@custom-variant dark (&:where([data-theme="dark"] *))`, nav Light/Dark toggle button, and dark: variants on body + nav. What is pending:
+Dark mode retrofit shipped (commit `a92a233`):
 
-1. Retrofit dark: variants across dashboard, projects (index/show/new/edit), issues (index/show/new/edit/_form), invitations, auth pages, and comments thread. Right now the body inverts but content stays light-styled, so the contrast is broken on most pages.
-2. Resolve "system" theme client-side via a small inline script that reads `prefers-color-scheme` and toggles `data-theme` before first paint, to avoid FOUC.
-3. Optional: per-organization branding (name-only accent color) as a separate "themes" pass — the spec mentioned "default themes" plural, and only light/dark shipped today.
+1. ✅ Dark: variants across dashboard, projects, issues, invitations, auth pages, and comments thread.
+2. ✅ Inline `prefers-color-scheme` resolver in the layout with CSP nonce support, so `theme=system` flips to light/dark before first paint.
 
-Everything else in Phase 3 (issues, comments, mentions, templates) is done and tests cover it.
+Still optional (not blocking Phase 4): per-organization branding / accent color. If that matters before Phase 5 MVP ships, queue it as a short pre-Phase-4 task; otherwise roll it into the Phase 12 polish pass alongside Kamal + screenshots.
 
 ## Phase 1 follow-ups (closed 2026-04-22)
 
