@@ -282,6 +282,21 @@ class TenantIsolationTest < ActiveSupport::TestCase
     assert row["relforcerowsecurity"]
   end
 
+  test "issue status change from inside tenant updates the row" do
+    as_app(user: @alice, organization: @acme) do
+      assert @acme_issue.update(status: :in_progress)
+      assert_equal "in_progress", @acme_issue.reload.status
+    end
+  end
+
+  test "cross-tenant issue status UPDATE affects zero rows even via direct where" do
+    as_app(user: @alice, organization: @acme) do
+      affected = Issue.where(id: @globex_issue.id).update_all(status: Issue.statuses[:done])
+      assert_equal 0, affected
+    end
+    assert_equal "open", @globex_issue.reload.status
+  end
+
   # --- comments ------------------------------------------------------------
 
   test "comments visible only from their own tenant" do

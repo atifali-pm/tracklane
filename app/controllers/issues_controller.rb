@@ -1,8 +1,8 @@
 class IssuesController < ApplicationController
   before_action :require_membership
   before_action :set_project
-  before_action :set_issue, only: %i[show edit update destroy]
-  before_action -> { require_role(:admin, :manager, :member) }, only: %i[new create]
+  before_action :set_issue, only: %i[show edit update destroy move]
+  before_action -> { require_role(:admin, :manager, :member) }, only: %i[new create move]
   before_action :authorize_issue_write, only: %i[edit update destroy]
 
   def index
@@ -49,6 +49,18 @@ class IssuesController < ApplicationController
   def destroy
     @issue.destroy
     redirect_to project_issues_path(@project), notice: "Issue deleted."
+  end
+
+  # Kanban drag-drop endpoint. Accepts a new status and returns no body;
+  # the Issue model's after_update_commit broadcasts the resulting column
+  # updates via Turbo Streams to every subscriber of the project's board.
+  def move
+    new_status = params[:status].to_s
+    if Issue.statuses.key?(new_status) && @issue.update(status: new_status)
+      head :ok
+    else
+      head :unprocessable_content
+    end
   end
 
   private

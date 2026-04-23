@@ -19,6 +19,8 @@ class Issue < ApplicationRecord
   scope :ordered, -> { order(created_at: :desc) }
   scope :open_issues, -> { where(status: %i[open in_progress in_review blocked]) }
 
+  after_update_commit :broadcast_board_update, if: :saved_change_to_status?
+
   def to_param = number.to_s
 
   def reference
@@ -44,5 +46,21 @@ class Issue < ApplicationRecord
       return if assignee.blank? || organization.blank?
       return if Membership.exists?(user_id: assignee_id, organization_id: organization_id)
       errors.add(:assignee, "must be a member of the project's organization")
+    end
+
+    # Re-renders the two affected columns (old + new status) on the project's
+    # board stream whenever an issue status changes. Runs inside the request
+    # transaction so the RLS GUCs are still set when the partials query for
+    # their sibling issues.
+    def broadcast_board_update
+      from_status, to_status = saved_change_to_status
+      [ from_status, to_status ].compact.uniq.each do |status|
+        Turbo::StreamsChannel.broadcast_replace_to(
+          [ project, :board ],
+          target: "board_column_#{status}_list",
+          partial: "boards/column_list",
+          locals: { project: project, issues: project.issues.where(status: status).ordered, status: status }
+        )
+      end
     end
 end

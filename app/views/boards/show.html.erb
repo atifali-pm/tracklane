@@ -1,0 +1,40 @@
+<%= turbo_stream_from [ @project, :board ] %>
+
+<div class="max-w-7xl mx-auto py-8 px-4">
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <div class="mb-1">
+        <%= link_to @project.name, @project, class: "text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white" %>
+      </div>
+      <h1 class="text-2xl font-semibold">Board</h1>
+    </div>
+    <div class="flex items-center gap-2">
+      <%= link_to "List view", project_issues_path(@project),
+            class: "text-sm border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800" %>
+      <% if %w[admin manager member].include?(current_membership&.role.to_s) %>
+        <%= link_to "New issue", new_project_issue_path(@project),
+              class: "bg-gray-900 text-white rounded-md px-3 py-1.5 text-sm hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white" %>
+      <% end %>
+    </div>
+  </div>
+
+  <% can_move = %w[admin manager member].include?(current_membership&.role.to_s) %>
+
+  <div class="grid grid-cols-1 md:grid-cols-5 gap-4"
+       data-controller="board"
+       data-board-move-url-template-value="<%= move_project_issue_path(@project, '__NUM__') %>"
+       data-board-csrf-token-value="<%= form_authenticity_token %>"
+       data-board-draggable-value="<%= can_move %>">
+    <% Issue.statuses.keys.each do |status| %>
+      <section class="flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md min-h-[24rem]"
+               data-board-target="column"
+               data-board-status-value="<%= status %>">
+        <header class="px-3 py-2 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+          <span class="text-sm font-semibold <%= status_badge_class(status) %> px-2 py-0.5 rounded-full capitalize"><%= status.humanize %></span>
+          <span class="text-xs text-gray-500 dark:text-gray-400"><%= @issues_by_status[status].size %></span>
+        </header>
+        <%= render "boards/column_list", project: @project, issues: @issues_by_status[status], status: status %>
+      </section>
+    <% end %>
+  </div>
+</div>

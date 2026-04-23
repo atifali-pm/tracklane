@@ -5,7 +5,9 @@ Rails.application.routes.draw do
   resource :user_preferences, only: %i[update]
 
   resources :projects, param: :slug do
+    resource :board, only: %i[show]
     resources :issues, param: :number do
+      member { patch :move }
       resources :comments, only: %i[create]
     end
   end

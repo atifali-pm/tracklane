@@ -1,0 +1,13 @@
+<ul id="board_column_<%= status %>_list"
+    class="flex-1 p-2 space-y-2 min-h-[4rem]"
+    data-board-target="list"
+    data-board-status-value="<%= status %>">
+  <% issues.each do |issue| %>
+    <%= render "issues/card", project: project, issue: issue %>
+  <% end %>
+  <% if issues.empty? %>
+    <li class="text-xs text-gray-400 dark:text-gray-600 italic text-center py-2 pointer-events-none">
+      Drop issues here
+    </li>
+  <% end %>
+</ul>

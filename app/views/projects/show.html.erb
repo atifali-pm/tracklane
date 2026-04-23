@@ -13,16 +13,18 @@
       </div>
       <p class="text-sm text-gray-500 dark:text-gray-400">/<%= @project.slug %></p>
     </div>
-    <% if current_membership&.admin? || current_membership&.manager? %>
-      <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2">
+      <%= link_to "Board", project_board_path(@project),
+            class: "text-sm border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800" %>
+      <% if current_membership&.admin? || current_membership&.manager? %>
         <%= link_to "Edit", edit_project_path(@project),
               class: "text-sm border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800" %>
         <%= button_to "Delete", @project,
               method: :delete,
               data: { turbo_confirm: "Delete #{@project.name}? This cannot be undone." },
               class: "text-sm border border-red-300 dark:border-red-900 text-red-700 dark:text-red-300 rounded-md px-3 py-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer" %>
-      </div>
-    <% end %>
+      <% end %>
+    </div>
   </div>
 
   <% if @project.description.present? %>
