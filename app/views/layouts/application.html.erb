@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-theme="<%= resolved_theme %>">
+<html data-theme="<%= theme_preference %>">
   <head>
     <title><%= content_for(:title) || "Tracklane" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -8,6 +8,19 @@
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+
+    <%# Resolve "system" preference to light/dark from the OS before the
+        stylesheet applies, so users with theme=system get the correct
+        palette without a flash of the wrong theme. %>
+    <script nonce="<%= content_security_policy_nonce %>">
+      (function() {
+        var el = document.documentElement;
+        var t = el.dataset.theme;
+        if (!t || t === "system") {
+          el.dataset.theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+      })();
+    </script>
 
     <%= yield :head %>
 

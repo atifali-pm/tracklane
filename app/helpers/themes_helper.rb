@@ -1,16 +1,8 @@
 module ThemesHelper
-  # Renders one of "light" or "dark" so CSS has a single attribute to key off.
-  # "system" defaults to light here because detecting OS scheme server-side
-  # is not possible without JS. A tiny script in the nav can flip to dark
-  # client-side if prefers-color-scheme says so; that is a future polish.
-  def resolved_theme
-    case Current.user&.theme
-    when "dark" then "dark"
-    when "light" then "light"
-    else "light"
-    end
-  end
-
+  # Returns the user's saved preference ("system", "light", or "dark"),
+  # or "system" when no user is signed in (auth pages). The inline
+  # resolver script in the layout flips "system" to the actual OS
+  # preference before the stylesheet applies.
   def theme_preference
     Current.user&.theme.presence || "system"
   end

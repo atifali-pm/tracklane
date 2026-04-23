@@ -1,15 +1,15 @@
 <div class="max-w-4xl mx-auto py-10 px-4">
   <div class="mb-6">
-    <%= link_to "#{@project.name} issues", project_issues_path(@project), class: "text-sm text-gray-500 hover:text-gray-800" %>
+    <%= link_to "#{@project.name} issues", project_issues_path(@project), class: "text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white" %>
   </div>
 
   <div class="flex items-start justify-between mb-4">
     <div class="flex-1">
-      <div class="text-xs text-gray-400 font-mono mb-1">
+      <div class="text-xs text-gray-400 dark:text-gray-500 font-mono mb-1">
         <%= @project.slug %>-#<%= @issue.number %>
       </div>
       <h1 class="text-2xl font-semibold"><%= @issue.title %></h1>
-      <div class="text-sm text-gray-500 mt-1">
+      <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
         Opened by <%= @issue.reporter.email_address %>
         <%= time_ago_in_words(@issue.created_at) %> ago
         <% if @issue.assignee %>
@@ -20,11 +20,11 @@
     <% if can_edit_issue?(@issue) %>
       <div class="flex items-center gap-2 shrink-0">
         <%= link_to "Edit", edit_project_issue_path(@project, @issue),
-              class: "text-sm border border-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-100" %>
+              class: "text-sm border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800" %>
         <%= button_to "Delete", project_issue_path(@project, @issue),
               method: :delete,
               data: { turbo_confirm: "Delete issue ##{@issue.number}?" },
-              class: "text-sm border border-red-300 text-red-700 rounded-md px-3 py-1.5 hover:bg-red-50 cursor-pointer" %>
+              class: "text-sm border border-red-300 dark:border-red-900 text-red-700 dark:text-red-300 rounded-md px-3 py-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer" %>
       </div>
     <% end %>
   </div>
@@ -37,20 +37,20 @@
       priority: <%= @issue.priority %>
     </span>
     <% if @issue.due_date %>
-      <span class="text-gray-500">due <%= @issue.due_date.to_fs(:long) %></span>
+      <span class="text-gray-500 dark:text-gray-400">due <%= @issue.due_date.to_fs(:long) %></span>
     <% end %>
   </div>
 
   <% if @issue.description.present? %>
-    <div class="bg-white border border-gray-200 rounded-md p-5 mb-8 text-gray-800 whitespace-pre-wrap">
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md p-5 mb-8 text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
       <%= @issue.description %>
     </div>
   <% else %>
-    <p class="text-sm text-gray-500 italic mb-8">No description.</p>
+    <p class="text-sm text-gray-500 dark:text-gray-400 italic mb-8">No description.</p>
   <% end %>
 
   <section class="space-y-4 mb-6">
-    <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+    <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
       Comments (<%= @comments.size %>)
     </h2>
 
@@ -59,17 +59,17 @@
     <% end %>
 
     <% if @comments.empty? %>
-      <p class="text-sm text-gray-500 italic">No comments yet.</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400 italic">No comments yet.</p>
     <% end %>
   </section>
 
-  <section class="bg-white border border-gray-200 rounded-md p-4">
+  <section class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md p-4">
     <%= form_with model: @comment, url: project_issue_comments_path(@project, @issue), class: "space-y-3" do |f| %>
-      <%= f.label :body, "Add a comment", class: "block text-sm font-medium text-gray-700" %>
+      <%= f.label :body, "Add a comment", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
       <%= f.text_area :body, rows: 4, required: true,
             placeholder: "Mention someone with @their-email@example.com. Markdown-light supported.",
-            class: "block w-full rounded-md border border-gray-300 px-3 py-2 text-sm" %>
-      <%= f.submit "Comment", class: "bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800 cursor-pointer" %>
+            class: "block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 px-3 py-2 text-sm" %>
+      <%= f.submit "Comment", class: "bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white cursor-pointer" %>
     <% end %>
   </section>
 </div>

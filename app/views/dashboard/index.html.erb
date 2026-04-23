@@ -1,68 +1,68 @@
 <div class="max-w-5xl mx-auto py-10 px-4">
   <% if current_organization %>
     <h1 class="text-2xl font-semibold mb-1"><%= current_organization.name %></h1>
-    <p class="text-gray-500 mb-10 text-sm">
+    <p class="text-gray-500 dark:text-gray-400 mb-10 text-sm">
       You are <%= current_membership&.role %> in this organization.
     </p>
 
     <section class="mb-10">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Projects</h2>
-        <%= link_to "View all", projects_path, class: "text-sm text-gray-600 hover:text-gray-900" %>
+        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Projects</h2>
+        <%= link_to "View all", projects_path, class: "text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white" %>
       </div>
 
       <% if @recent_projects.any? %>
-        <ul class="divide-y divide-gray-200 border border-gray-200 rounded-md bg-white">
+        <ul class="divide-y divide-gray-200 dark:divide-gray-800 border border-gray-200 dark:border-gray-800 rounded-md bg-white dark:bg-gray-900">
           <% @recent_projects.each do |project| %>
-            <li class="px-4 py-3 hover:bg-gray-50">
+            <li class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800">
               <%= link_to project, class: "flex items-center justify-between" do %>
                 <div>
-                  <div class="font-medium text-gray-900"><%= project.name %></div>
+                  <div class="font-medium text-gray-900 dark:text-gray-100"><%= project.name %></div>
                   <% if project.description.present? %>
-                    <div class="text-sm text-gray-500 line-clamp-1"><%= project.description %></div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1"><%= project.description %></div>
                   <% end %>
                 </div>
-                <span class="text-xs text-gray-500 capitalize"><%= project.status %></span>
+                <span class="text-xs text-gray-500 dark:text-gray-400 capitalize"><%= project.status %></span>
               <% end %>
             </li>
           <% end %>
         </ul>
       <% else %>
-        <div class="border border-dashed border-gray-300 rounded-md p-8 text-center bg-white">
-          <p class="text-gray-600 mb-4">No projects in <%= current_organization.name %> yet.</p>
+        <div class="border border-dashed border-gray-300 dark:border-gray-700 rounded-md p-8 text-center bg-white dark:bg-gray-900">
+          <p class="text-gray-600 dark:text-gray-400 mb-4">No projects in <%= current_organization.name %> yet.</p>
           <% if current_membership&.admin? || current_membership&.manager? %>
             <%= link_to "Create the first project", new_project_path,
-                  class: "bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800" %>
+                  class: "bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white" %>
           <% else %>
-            <p class="text-sm text-gray-500">Ask an admin or manager to create one.</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Ask an admin or manager to create one.</p>
           <% end %>
         </div>
       <% end %>
     </section>
   <% else %>
     <h1 class="text-2xl font-semibold mb-2">Welcome to Tracklane</h1>
-    <p class="text-gray-600">
+    <p class="text-gray-600 dark:text-gray-400">
       You are not a member of any organization yet. Ask an admin to invite you.
     </p>
   <% end %>
 
   <section>
-    <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">All your organizations</h2>
-    <ul class="divide-y divide-gray-200 border border-gray-200 rounded-md bg-white">
+    <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">All your organizations</h2>
+    <ul class="divide-y divide-gray-200 dark:divide-gray-800 border border-gray-200 dark:border-gray-800 rounded-md bg-white dark:bg-gray-900">
       <% @memberships.each do |m| %>
         <li class="px-4 py-3 flex items-center justify-between">
           <div>
-            <div class="font-medium text-gray-900"><%= m.organization.name %></div>
-            <div class="text-xs text-gray-500"><%= m.organization.slug %></div>
+            <div class="font-medium text-gray-900 dark:text-gray-100"><%= m.organization.name %></div>
+            <div class="text-xs text-gray-500 dark:text-gray-400"><%= m.organization.slug %></div>
           </div>
           <div class="flex items-center gap-3">
-            <span class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700 capitalize">
+            <span class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 capitalize">
               <%= m.role %>
             </span>
             <% unless m.organization == current_organization %>
               <%= button_to "Switch", switch_organization_path(m.organization.slug),
                     method: :patch,
-                    class: "text-xs text-gray-600 hover:text-gray-900 underline" %>
+                    class: "text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white underline" %>
             <% end %>
           </div>
         </li>
