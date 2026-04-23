@@ -1,0 +1,41 @@
+<div id="<%= dom_id(issue, :triage) %>" class="mb-6">
+  <% if suggestion.present? %>
+    <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-900 rounded-md p-4">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex-1 min-w-0">
+          <div class="text-xs uppercase tracking-wide text-indigo-700 dark:text-indigo-300 font-semibold mb-1">
+            AI triage suggestion
+          </div>
+          <div class="text-sm text-gray-800 dark:text-gray-200">
+            Suggested priority
+            <span class="inline-flex items-center px-2 py-0.5 text-xs rounded-full capitalize ml-1 <%= priority_badge_class(suggestion['priority']) %>">
+              <%= suggestion['priority'] %>
+            </span>
+            <% if (email = suggestion['assignee_email']).present? %>
+              · assignee <span class="font-mono"><%= email %></span>
+            <% end %>
+            <% if suggestion['labels'].present? %>
+              · labels
+              <% Array(suggestion['labels']).each do |label| %>
+                <span class="inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-indigo-200 ml-1"><%= label %></span>
+              <% end %>
+            <% end %>
+          </div>
+          <% if suggestion['rationale'].present? %>
+            <div class="text-xs text-gray-600 dark:text-gray-400 mt-2 italic">
+              "<%= suggestion['rationale'] %>"
+            </div>
+          <% end %>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <%= button_to "Apply", project_issue_triage_path(project, issue),
+                method: :patch,
+                class: "text-sm bg-indigo-600 hover:bg-indigo-500 text-white rounded-md px-3 py-1.5 cursor-pointer" %>
+          <%= button_to "Dismiss", project_issue_triage_path(project, issue),
+                method: :delete,
+                class: "text-sm border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer" %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

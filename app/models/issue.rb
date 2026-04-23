@@ -20,6 +20,7 @@ class Issue < ApplicationRecord
   scope :open_issues, -> { where(status: %i[open in_progress in_review blocked]) }
 
   after_create_commit  :record_opened_event
+  after_create_commit  :enqueue_triage, if: -> { IssueTriageService.enabled? }
   after_update_commit  :broadcast_board_update, if: :saved_change_to_status?
   after_update_commit  :record_moved_event,     if: :saved_change_to_status?
   after_update_commit  :record_assigned_event,  if: :saved_change_to_assignee_id?
@@ -55,6 +56,10 @@ class Issue < ApplicationRecord
       ActivityEvent.record!("issue.opened", subject: self, metadata: { project_slug: project.slug, title: title })
     end
 
+    def enqueue_triage
+      IssueTriageJob.perform_later(id, organization_id)
+    end
+
     def record_moved_event
       from, to = saved_change_to_status
       ActivityEvent.record!("issue.moved", subject: self,
@@ -82,7 +87,7 @@ class Issue < ApplicationRecord
       from_status, to_status = saved_change_to_status
       statuses = [ from_status, to_status ].compact.uniq
 
-      ActivityEvent.send(:with_organization_guc, organization_id) do
+      ActivityEvent.with_organization_guc(organization_id) do
         statuses.each do |status|
           Turbo::StreamsChannel.broadcast_replace_to(
             [ project, :board ],

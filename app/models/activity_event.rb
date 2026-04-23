@@ -14,7 +14,7 @@ class ActivityEvent < ApplicationRecord
     # gone. Scope just the partial render so it can pass RLS, and restore
     # the previous GUC state so nothing leaks to enclosing contexts.
     def broadcast_to_feed
-      self.class.send(:with_organization_guc, organization_id) do
+      self.class.with_organization_guc(organization_id) do
         Turbo::StreamsChannel.broadcast_prepend_to(
           [ organization, :activity ],
           target: "activity_feed",
@@ -67,5 +67,7 @@ class ActivityEvent < ApplicationRecord
       end
     end
   end
-  private_class_method :with_organization_guc
+  # Intentionally public: Phase 6 background jobs call it to re-scope their
+  # connection outside of any request.
+  # private_class_method :with_organization_guc
 end

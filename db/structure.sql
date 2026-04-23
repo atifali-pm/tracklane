@@ -169,7 +169,8 @@ CREATE TABLE public.issues (
     priority integer DEFAULT 1 NOT NULL,
     due_date date,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    triage_suggestion jsonb
 );
 
 ALTER TABLE ONLY public.issues FORCE ROW LEVEL SECURITY;
@@ -1041,6 +1042,7 @@ CREATE POLICY tenant_isolation ON public.projects USING ((organization_id = (NUL
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260423105713'),
 ('20260423080634'),
 ('20260422180251'),
 ('20260422174703'),

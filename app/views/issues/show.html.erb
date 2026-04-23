@@ -41,6 +41,9 @@
     <% end %>
   </div>
 
+  <%= turbo_stream_from [ @issue, :triage ] %>
+  <%= render "issues/triage_suggestion", project: @project, issue: @issue, suggestion: @issue.triage_suggestion %>
+
   <% if @issue.description.present? %>
     <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md p-5 mb-8 text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
       <%= @issue.description %>

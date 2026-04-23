@@ -13,6 +13,7 @@ Rails.application.routes.draw do
     resources :issues, param: :number do
       member { patch :move }
       resources :comments, only: %i[create]
+      resource :triage, only: %i[update destroy], controller: "issue_triages"
     end
   end
   resources :invitations, only: %i[index new create destroy], param: :token
