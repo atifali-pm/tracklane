@@ -14,6 +14,7 @@ Rails.application.routes.draw do
     resources :issues, param: :number do
       member { patch :move }
       resources :comments, only: %i[create]
+      resources :time_entries, only: %i[create destroy]
       resource :triage, only: %i[update destroy], controller: "issue_triages"
     end
     resource :calendar, only: %i[show], controller: "calendars"

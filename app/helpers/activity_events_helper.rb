@@ -6,7 +6,8 @@ module ActivityEventsHelper
     "comment.created"      => "💬",
     "project.created"      => "+",
     "membership.created"   => "+",
-    "invitation.created"   => "✉"
+    "invitation.created"   => "✉",
+    "time.logged"          => "⏱"
   }.freeze
 
   def activity_icon(event)
@@ -33,6 +34,11 @@ module ActivityEventsHelper
       "#{meta['email']} joined as #{meta['role']}"
     when "invitation.created"
       "#{actor} invited #{meta['email']} as #{meta['role']}"
+    when "time.logged"
+      minutes = meta['minutes'].to_i
+      hours, mins = minutes.divmod(60)
+      formatted = hours.positive? ? (mins.zero? ? "#{hours}h" : "#{hours}h #{mins}m") : "#{mins}m"
+      "#{actor} logged #{formatted} on #{meta['project_slug']}-##{meta['issue_number']}"
     else
       "#{actor} performed #{event.action}"
     end

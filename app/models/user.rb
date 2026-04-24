@@ -5,6 +5,7 @@ class User < ApplicationRecord
   has_many :organizations, through: :memberships
   has_many :reported_issues, class_name: "Issue", foreign_key: :reporter_id, dependent: :nullify
   has_many :assigned_issues, class_name: "Issue", foreign_key: :assignee_id, dependent: :nullify
+  has_many :time_entries, dependent: :destroy
 
   THEMES = %w[system light dark].freeze
 

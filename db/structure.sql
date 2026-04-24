@@ -417,6 +417,44 @@ ALTER SEQUENCE public.sessions_id_seq OWNED BY public.sessions.id;
 
 
 --
+-- Name: time_entries; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.time_entries (
+    id bigint NOT NULL,
+    organization_id bigint NOT NULL,
+    issue_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    minutes integer NOT NULL,
+    occurred_on date NOT NULL,
+    note character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.time_entries FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: time_entries_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.time_entries_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: time_entries_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.time_entries_id_seq OWNED BY public.time_entries.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -520,6 +558,13 @@ ALTER TABLE ONLY public.sessions ALTER COLUMN id SET DEFAULT nextval('public.ses
 
 
 --
+-- Name: time_entries id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.time_entries ALTER COLUMN id SET DEFAULT nextval('public.time_entries_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -620,6 +665,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 ALTER TABLE ONLY public.sessions
     ADD CONSTRAINT sessions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: time_entries time_entries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.time_entries
+    ADD CONSTRAINT time_entries_pkey PRIMARY KEY (id);
 
 
 --
@@ -855,6 +908,41 @@ CREATE INDEX index_sessions_on_user_id ON public.sessions USING btree (user_id);
 
 
 --
+-- Name: index_time_entries_on_issue_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_time_entries_on_issue_id ON public.time_entries USING btree (issue_id);
+
+
+--
+-- Name: index_time_entries_on_issue_id_and_occurred_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_time_entries_on_issue_id_and_occurred_on ON public.time_entries USING btree (issue_id, occurred_on);
+
+
+--
+-- Name: index_time_entries_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_time_entries_on_organization_id ON public.time_entries USING btree (organization_id);
+
+
+--
+-- Name: index_time_entries_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_time_entries_on_user_id ON public.time_entries USING btree (user_id);
+
+
+--
+-- Name: index_time_entries_on_user_id_and_occurred_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_time_entries_on_user_id_and_occurred_on ON public.time_entries USING btree (user_id, occurred_on);
+
+
+--
 -- Name: index_users_on_email_address; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -926,6 +1014,14 @@ ALTER TABLE ONLY public.memberships
 
 
 --
+-- Name: time_entries fk_rails_6fa304b886; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.time_entries
+    ADD CONSTRAINT fk_rails_6fa304b886 FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
 -- Name: sessions fk_rails_758836b4f0; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -966,11 +1062,27 @@ ALTER TABLE ONLY public.projects
 
 
 --
+-- Name: time_entries fk_rails_b471d1824b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.time_entries
+    ADD CONSTRAINT fk_rails_b471d1824b FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: comments fk_rails_b5b64d6bc9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.comments
     ADD CONSTRAINT fk_rails_b5b64d6bc9 FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
+-- Name: time_entries fk_rails_c059b6a70d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.time_entries
+    ADD CONSTRAINT fk_rails_c059b6a70d FOREIGN KEY (issue_id) REFERENCES public.issues(id);
 
 
 --
@@ -1132,12 +1244,26 @@ CREATE POLICY tenant_isolation ON public.projects USING ((organization_id = (NUL
 
 
 --
+-- Name: time_entries tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.time_entries USING ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint)) WITH CHECK ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint));
+
+
+--
+-- Name: time_entries; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.time_entries ENABLE ROW LEVEL SECURITY;
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260424132130'),
 ('20260424120341'),
 ('20260423105713'),
 ('20260423080634'),

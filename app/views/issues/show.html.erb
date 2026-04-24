@@ -66,7 +66,7 @@
     <% end %>
   </section>
 
-  <section class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md p-4">
+  <section class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md p-4 mb-6">
     <%= form_with model: @comment, url: project_issue_comments_path(@project, @issue), class: "space-y-3" do |f| %>
       <%= f.label :body, "Add a comment", class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
       <%= f.text_area :body, rows: 4, required: true,
@@ -75,4 +75,6 @@
       <%= f.submit "Comment", class: "bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white cursor-pointer" %>
     <% end %>
   </section>
+
+  <%= render "issues/time_log", project: @project, issue: @issue %>
 </div>

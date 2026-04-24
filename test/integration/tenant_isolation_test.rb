@@ -47,6 +47,9 @@ class TenantIsolationTest < ActiveSupport::TestCase
       subject_type: "Issue", subject_id: @acme_issue.id, metadata: { title: "Acme bug" })
     @globex_event = ActivityEvent.create!(organization: @globex, actor: @bob,   action: "issue.opened",
       subject_type: "Issue", subject_id: @globex_issue.id, metadata: { title: "Globex bug" })
+
+    @acme_time   = TimeEntry.create!(organization: @acme,   issue: @acme_issue,   user: @alice, minutes: 30, occurred_on: Date.current)
+    @globex_time = TimeEntry.create!(organization: @globex, issue: @globex_issue, user: @bob,   minutes: 45, occurred_on: Date.current)
   end
 
   # --- projects ------------------------------------------------------------
@@ -399,6 +402,41 @@ class TenantIsolationTest < ActiveSupport::TestCase
   test "activity events table has RLS enabled and forced" do
     row = ApplicationRecord.connection.select_one(
       "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname = 'activity_events'"
+    )
+    assert row["relrowsecurity"]
+    assert row["relforcerowsecurity"]
+  end
+
+  # --- time entries --------------------------------------------------------
+
+  test "time entries visible only from their own tenant" do
+    as_app(user: @alice, organization: @acme) do
+      assert_equal [ @acme_time.id ], TimeEntry.pluck(:id)
+    end
+    as_app(user: @bob, organization: @globex) do
+      assert_equal [ @globex_time.id ], TimeEntry.pluck(:id)
+    end
+  end
+
+  test "cross-tenant time entry INSERT is blocked" do
+    as_app(user: @alice, organization: @acme) do
+      assert_raises ActiveRecord::StatementInvalid do
+        TimeEntry.create!(organization: @globex, issue: @globex_issue, user: @alice, minutes: 10, occurred_on: Date.current)
+      end
+    end
+  end
+
+  test "cross-tenant time entry DELETE affects zero rows" do
+    as_app(user: @alice, organization: @acme) do
+      affected = TimeEntry.where(id: @globex_time.id).delete_all
+      assert_equal 0, affected
+    end
+    assert TimeEntry.exists?(@globex_time.id)
+  end
+
+  test "time entries table has RLS enabled and forced" do
+    row = ApplicationRecord.connection.select_one(
+      "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname = 'time_entries'"
     )
     assert row["relrowsecurity"]
     assert row["relforcerowsecurity"]

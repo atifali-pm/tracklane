@@ -10,5 +10,9 @@ class DashboardController < ApplicationController
                             .limit(8)
     @recent_activity = current_organization.activity_events.includes(:actor).ordered.limit(6)
     @pending_invitations_count = current_organization.invitations.pending.count if current_membership&.admin?
+    @time_this_week_minutes = Current.user.time_entries
+                                      .where(organization_id: current_organization.id)
+                                      .for_week_of(Date.current)
+                                      .sum_minutes
   end
 end

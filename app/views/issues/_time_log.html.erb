@@ -1,0 +1,52 @@
+<section class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md p-4">
+  <% total = issue.time_entries.sum_minutes %>
+  <% entries = issue.time_entries.includes(:user).ordered %>
+
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+      Time log
+    </h2>
+    <span class="text-xs text-gray-500 dark:text-gray-400">
+      Total: <span class="font-medium text-gray-900 dark:text-gray-100"><%= format_minutes(total) %></span>
+    </span>
+  </div>
+
+  <%= form_with model: TimeEntry.new, url: project_issue_time_entries_path(project, issue), class: "grid grid-cols-1 sm:grid-cols-[6rem_9rem_1fr_auto] gap-2 items-start mb-4" do |f| %>
+    <%= f.number_field :minutes,
+          min: 1, max: 1440, required: true, placeholder: "mins",
+          class: "block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm" %>
+    <%= f.date_field :occurred_on, required: true, value: Date.current,
+          class: "block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm" %>
+    <%= f.text_field :note, placeholder: "Note (optional)",
+          class: "block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm" %>
+    <%= f.submit "Log",
+          class: "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-4 py-2 text-sm hover:bg-gray-800 dark:hover:bg-white cursor-pointer" %>
+  <% end %>
+
+  <% if entries.any? %>
+    <ul class="divide-y divide-gray-200 dark:divide-gray-800 border border-gray-200 dark:border-gray-800 rounded-md">
+      <% entries.each do |entry| %>
+        <li class="px-3 py-2 text-sm flex items-center justify-between gap-3">
+          <div class="flex-1 min-w-0">
+            <div class="text-gray-900 dark:text-gray-100">
+              <span class="font-medium"><%= format_minutes(entry.minutes) %></span>
+              <span class="text-gray-500 dark:text-gray-400 ml-1"><%= entry.occurred_on.to_fs(:long) %></span>
+              <span class="text-gray-500 dark:text-gray-400 ml-1">· <%= entry.user.email_address.split('@').first %></span>
+            </div>
+            <% if entry.note.present? %>
+              <div class="text-xs text-gray-600 dark:text-gray-400 mt-0.5 truncate"><%= entry.note %></div>
+            <% end %>
+          </div>
+          <% if entry.user_id == Current.user&.id || %w[admin manager].include?(current_membership&.role.to_s) %>
+            <%= button_to "✕", project_issue_time_entry_path(project, issue, entry),
+                  method: :delete,
+                  data: { turbo_confirm: "Delete this entry?" },
+                  class: "text-xs text-gray-400 hover:text-red-600 dark:hover:text-red-400 cursor-pointer px-2 py-1" %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="text-sm text-gray-500 dark:text-gray-400 italic">No time logged yet.</p>
+  <% end %>
+</section>

@@ -4,6 +4,7 @@ class Issue < ApplicationRecord
   belongs_to :reporter, class_name: "User"
   belongs_to :assignee, class_name: "User", optional: true
   has_many :comments, dependent: :destroy
+  has_many :time_entries, dependent: :destroy
 
   enum :status,   { open: 0, in_progress: 1, in_review: 2, done: 3, blocked: 4 }
   enum :priority, { low: 0, medium: 1, high: 2, urgent: 3 }
