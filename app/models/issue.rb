@@ -21,6 +21,7 @@ class Issue < ApplicationRecord
 
   after_create_commit  :record_opened_event
   after_create_commit  :enqueue_triage, if: -> { IssueTriageService.enabled? }
+  after_commit :enqueue_embedding, on: %i[create update], if: -> { EmbeddingService.enabled? }
   after_update_commit  :broadcast_board_update, if: :saved_change_to_status?
   after_update_commit  :record_moved_event,     if: :saved_change_to_status?
   after_update_commit  :record_assigned_event,  if: :saved_change_to_assignee_id?
@@ -58,6 +59,10 @@ class Issue < ApplicationRecord
 
     def enqueue_triage
       IssueTriageJob.perform_later(id, organization_id)
+    end
+
+    def enqueue_embedding
+      EmbedDocumentJob.perform_later("Issue", id, organization_id)
     end
 
     def record_moved_event

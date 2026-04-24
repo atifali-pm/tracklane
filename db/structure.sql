@@ -114,6 +114,45 @@ ALTER SEQUENCE public.comments_id_seq OWNED BY public.comments.id;
 
 
 --
+-- Name: document_chunks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.document_chunks (
+    id bigint NOT NULL,
+    organization_id bigint NOT NULL,
+    source_type character varying NOT NULL,
+    source_id bigint NOT NULL,
+    content text NOT NULL,
+    embedding public.vector(1536),
+    metadata jsonb DEFAULT '{}'::jsonb NOT NULL,
+    token_count integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.document_chunks FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: document_chunks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.document_chunks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: document_chunks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.document_chunks_id_seq OWNED BY public.document_chunks.id;
+
+
+--
 -- Name: invitations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -425,6 +464,13 @@ ALTER TABLE ONLY public.comments ALTER COLUMN id SET DEFAULT nextval('public.com
 
 
 --
+-- Name: document_chunks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_chunks ALTER COLUMN id SET DEFAULT nextval('public.document_chunks_id_seq'::regclass);
+
+
+--
 -- Name: invitations id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -502,6 +548,14 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 ALTER TABLE ONLY public.comments
     ADD CONSTRAINT comments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: document_chunks document_chunks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_chunks
+    ADD CONSTRAINT document_chunks_pkey PRIMARY KEY (id);
 
 
 --
@@ -623,6 +677,27 @@ CREATE INDEX index_comments_on_organization_id ON public.comments USING btree (o
 --
 
 CREATE INDEX index_comments_on_user_id ON public.comments USING btree (user_id);
+
+
+--
+-- Name: index_document_chunks_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_document_chunks_on_organization_id ON public.document_chunks USING btree (organization_id);
+
+
+--
+-- Name: index_document_chunks_on_organization_id_and_source_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_document_chunks_on_organization_id_and_source_type ON public.document_chunks USING btree (organization_id, source_type);
+
+
+--
+-- Name: index_document_chunks_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_document_chunks_on_source_type_and_source_id ON public.document_chunks USING btree (source_type, source_id);
 
 
 --
@@ -811,6 +886,14 @@ ALTER TABLE ONLY public.mentions
 
 
 --
+-- Name: document_chunks fk_rails_2685223853; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_chunks
+    ADD CONSTRAINT fk_rails_2685223853 FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
 -- Name: mentions fk_rails_317de4030a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -943,6 +1026,12 @@ ALTER TABLE public.activity_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: document_chunks; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.document_chunks ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: invitations; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -1008,6 +1097,13 @@ CREATE POLICY tenant_isolation ON public.comments USING ((organization_id = (NUL
 
 
 --
+-- Name: document_chunks tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.document_chunks USING ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint)) WITH CHECK ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint));
+
+
+--
 -- Name: invitations tenant_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -1042,6 +1138,7 @@ CREATE POLICY tenant_isolation ON public.projects USING ((organization_id = (NUL
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260424120341'),
 ('20260423105713'),
 ('20260423080634'),
 ('20260422180251'),

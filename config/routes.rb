@@ -17,6 +17,7 @@ Rails.application.routes.draw do
       resource :triage, only: %i[update destroy], controller: "issue_triages"
     end
     resource :calendar, only: %i[show], controller: "calendars"
+    resource :ask, only: %i[show create], controller: "project_asks"
   end
   resources :invitations, only: %i[index new create destroy], param: :token
   resource :invitation_acceptance, only: %i[show create], path: "invitations/accept/:token"

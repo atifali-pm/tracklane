@@ -12,6 +12,7 @@ class Comment < ApplicationRecord
   before_validation :assign_organization, on: :create
   after_create :extract_mentions
   after_create_commit :record_created_event
+  after_commit :enqueue_embedding, on: %i[create update], if: -> { EmbeddingService.enabled? }
 
   scope :ordered, -> { order(created_at: :asc) }
 
@@ -23,6 +24,10 @@ class Comment < ApplicationRecord
     def record_created_event
       ActivityEvent.record!("comment.created", subject: self,
         metadata: { project_slug: issue.project.slug, issue_number: issue.number, issue_title: issue.title })
+    end
+
+    def enqueue_embedding
+      EmbedDocumentJob.perform_later("Comment", id, organization_id)
     end
 
     def extract_mentions

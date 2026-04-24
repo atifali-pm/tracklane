@@ -12,6 +12,7 @@ class Project < ApplicationRecord
 
   before_validation :generate_slug, on: :create
   after_create_commit :record_created_event
+  after_commit :enqueue_embedding, on: %i[create update], if: -> { EmbeddingService.enabled? }
 
   scope :ordered, -> { order(:name) }
 
@@ -25,5 +26,9 @@ class Project < ApplicationRecord
 
     def record_created_event
       ActivityEvent.record!("project.created", subject: self, metadata: { slug: slug, name: name })
+    end
+
+    def enqueue_embedding
+      EmbedDocumentJob.perform_later("Project", id, organization_id)
     end
 end
