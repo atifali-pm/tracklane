@@ -1,0 +1,85 @@
+<aside class="w-64 shrink-0 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col">
+  <div class="px-4 py-4 border-b border-gray-200 dark:border-gray-800">
+    <%= link_to root_path, class: "flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white" do %>
+      <span class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-indigo-600 text-white text-xs font-bold">T</span>
+      <span>Tracklane</span>
+    <% end %>
+  </div>
+
+  <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+    <% sidebar_link = ->(path, label, active, icon = "") {
+      active_class = active ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100" : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+      link_to path, class: "flex items-center gap-3 px-3 py-2 text-sm rounded-md font-medium #{active_class}" do
+        concat content_tag(:span, icon, class: "text-base leading-none w-5 text-center")
+        concat content_tag(:span, label)
+      end
+    } %>
+
+    <%= sidebar_link.call(root_path,        "Home",        controller_name == "dashboard",        "⌂") %>
+    <%= sidebar_link.call(projects_path,    "Projects",    controller_name == "projects" || controller_name == "issues" || controller_name == "boards", "▦") %>
+    <%= sidebar_link.call(activity_path,    "Activity",    controller_name == "activity_events", "≡") %>
+    <% if current_membership&.admin? %>
+      <%= sidebar_link.call(invitations_path, "Invitations", controller_name == "invitations", "✉") %>
+    <% end %>
+
+    <% if current_organization && available_projects.any? %>
+      <div class="mt-6">
+        <div class="px-3 py-1 text-xs uppercase tracking-wide font-semibold text-gray-400 dark:text-gray-500">
+          Projects
+        </div>
+        <div class="mt-1 space-y-0.5">
+          <% available_projects.first(8).each do |p| %>
+            <%= link_to p, class: "flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white #{'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100' if params[:slug] == p.slug}" do %>
+              <span class="w-1.5 h-1.5 rounded-full <%= p.active? ? 'bg-green-500' : 'bg-gray-400' %>"></span>
+              <span class="truncate"><%= p.name %></span>
+            <% end %>
+          <% end %>
+          <% if available_projects.count > 8 %>
+            <%= link_to "#{available_projects.count - 8} more…", projects_path, class: "block px-3 py-1.5 text-xs text-gray-500 dark:text-gray-500 hover:text-gray-800 dark:hover:text-white" %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </nav>
+
+  <div class="border-t border-gray-200 dark:border-gray-800 p-3 space-y-2">
+    <% if current_organization %>
+      <details class="relative group">
+        <summary class="list-none cursor-pointer flex items-center justify-between gap-2 px-2 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
+          <div class="min-w-0">
+            <div class="text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500">Organization</div>
+            <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate"><%= current_organization.name %></div>
+          </div>
+          <span class="text-gray-400 dark:text-gray-500">▾</span>
+        </summary>
+        <div class="mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md shadow-sm overflow-hidden">
+          <% available_organizations.each do |org| %>
+            <%= button_to switch_organization_path(org.slug), method: :patch,
+                  class: "w-full text-left px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-between #{'bg-gray-50 dark:bg-gray-800 font-medium' if org == current_organization}" do %>
+              <span class="truncate"><%= org.name %></span>
+              <% if org == current_organization %>
+                <span class="text-xs text-gray-400">current</span>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+      </details>
+    <% end %>
+
+    <div class="flex items-center gap-2 px-2">
+      <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-200 text-xs flex items-center justify-center font-semibold">
+        <%= Current.user.email_address.first.upcase %>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm text-gray-900 dark:text-gray-100 truncate"><%= Current.user.email_address %></div>
+        <% if current_membership %>
+          <div class="text-xs text-gray-500 dark:text-gray-400 capitalize"><%= current_membership.role %></div>
+        <% end %>
+      </div>
+      <%= button_to session_path, method: :delete,
+            class: "text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white" do %>
+        Sign out
+      <% end %>
+    </div>
+  </div>
+</aside>

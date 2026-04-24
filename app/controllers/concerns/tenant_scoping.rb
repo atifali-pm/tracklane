@@ -6,7 +6,7 @@ module TenantScoping
     before_action :set_current_user_guc
     before_action :load_current_organization
     before_action :set_current_organization_guc
-    helper_method :current_organization, :available_organizations, :current_membership
+    helper_method :current_organization, :available_organizations, :current_membership, :available_projects
   end
 
   private
@@ -61,5 +61,10 @@ module TenantScoping
 
     def available_organizations
       Current.user&.organizations&.order(:name) || Organization.none
+    end
+
+    def available_projects
+      return Project.none unless Current.organization
+      @available_projects ||= Project.ordered.to_a
     end
 end

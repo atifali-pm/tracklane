@@ -1,0 +1,49 @@
+<div class="space-y-5">
+  <section>
+    <div class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Quick actions</div>
+    <div class="space-y-2">
+      <% if current_membership&.admin? || current_membership&.manager? %>
+        <%= link_to new_project_path, class: "block bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-3 py-2 text-sm text-center hover:bg-gray-800 dark:hover:bg-white" do %>
+          + New project
+        <% end %>
+      <% end %>
+      <% if current_membership&.admin? %>
+        <%= link_to new_invitation_path, class: "block border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md px-3 py-2 text-sm text-center hover:bg-gray-50 dark:hover:bg-gray-800" do %>
+          ✉ Invite someone
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="border-t border-gray-200 dark:border-gray-800 pt-5">
+    <div class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">AI features</div>
+    <% if Rails.application.config.x.ai.enabled %>
+      <div class="flex items-center gap-2 text-xs text-green-700 dark:text-green-300 mb-2">
+        <span class="w-2 h-2 rounded-full bg-green-500"></span>
+        Claude triage is on
+      </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400">
+        New issues get a priority + assignee suggestion you can apply or dismiss.
+      </p>
+    <% else %>
+      <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
+        <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+        AI off
+      </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400">
+        Set <code class="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-[10px]">ANTHROPIC_API_KEY</code>
+        and restart the server to enable issue triage on create.
+      </p>
+    <% end %>
+  </section>
+
+  <section class="border-t border-gray-200 dark:border-gray-800 pt-5">
+    <div class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Get started</div>
+    <ul class="space-y-2 text-xs text-gray-600 dark:text-gray-400">
+      <li>→ Create a project from a template (Software, Marketing, Personal)</li>
+      <li>→ Open an issue with the bug / feature / task template</li>
+      <li>→ Drop an issue on the kanban board to move statuses</li>
+      <li>→ Mention <span class="font-mono">@email</span> in a comment to notify a teammate</li>
+    </ul>
+  </section>
+</div>

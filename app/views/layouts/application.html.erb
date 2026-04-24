@@ -9,9 +9,6 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
-    <%# Resolve "system" preference to light/dark from the OS before the
-        stylesheet applies, so users with theme=system get the correct
-        palette without a flash of the wrong theme. %>
     <script nonce="<%= content_security_policy_nonce %>">
       (function() {
         var el = document.documentElement;
@@ -24,18 +21,39 @@
 
     <%= yield :head %>
 
-    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
-    <%= render "layouts/nav" %>
-    <main>
+  <body class="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+    <% if Current.user %>
+      <div class="flex min-h-screen">
+        <%= render "layouts/sidebar" %>
+
+        <div class="flex-1 flex flex-col min-w-0">
+          <%= render "layouts/topbar" %>
+
+          <div class="flex-1 flex min-w-0">
+            <main class="flex-1 min-w-0">
+              <%= render "layouts/flash" %>
+              <%= yield %>
+            </main>
+
+            <% if content_for?(:right_rail) %>
+              <aside class="hidden xl:block w-80 shrink-0 border-l border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+                <%= yield :right_rail %>
+              </aside>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% else %>
+      <%= render "layouts/flash" %>
       <%= yield %>
-    </main>
+    <% end %>
   </body>
 </html>

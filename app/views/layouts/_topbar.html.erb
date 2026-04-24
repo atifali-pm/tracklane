@@ -1,0 +1,35 @@
+<header class="sticky top-0 z-20 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+  <div class="px-6 h-14 flex items-center justify-between gap-4">
+    <div class="min-w-0 flex-1">
+      <% if content_for?(:breadcrumb) %>
+        <div class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 truncate">
+          <%= yield :breadcrumb %>
+        </div>
+      <% else %>
+        <div class="text-sm text-gray-500 dark:text-gray-400">
+          <%= content_for?(:title) ? yield(:title) : current_organization&.name %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="flex items-center gap-3 shrink-0">
+      <%= button_to user_preferences_path(theme: (theme_preference == "dark" ? "light" : "dark")),
+            method: :patch,
+            class: "text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" do %>
+        <%= theme_preference == "dark" ? "☀" : "☾" %>
+      <% end %>
+
+      <% if current_membership && %w[admin manager].include?(current_membership.role) %>
+        <div class="hidden sm:block">
+          <% first_project = available_projects.first %>
+          <% if first_project %>
+            <%= link_to new_project_issue_path(first_project),
+                  class: "text-sm bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-3 py-1.5 hover:bg-gray-800 dark:hover:bg-white" do %>
+              + New issue
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</header>
