@@ -20,7 +20,7 @@
     <% if Rails.application.config.x.ai.enabled %>
       <div class="flex items-center gap-2 text-xs text-green-700 dark:text-green-300 mb-2">
         <span class="w-2 h-2 rounded-full bg-green-500"></span>
-        Claude triage is on
+        Issue triage is on
       </div>
       <p class="text-xs text-gray-500 dark:text-gray-400">
         New issues get a priority + assignee suggestion you can apply or dismiss.
@@ -31,8 +31,8 @@
         AI off
       </div>
       <p class="text-xs text-gray-500 dark:text-gray-400">
-        Set <code class="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-[10px]">ANTHROPIC_API_KEY</code>
-        and restart the server to enable issue triage on create.
+        Configure an AI provider in the server environment and restart to
+        enable issue triage on create.
       </p>
     <% end %>
   </section>

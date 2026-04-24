@@ -17,8 +17,11 @@ class ProjectAskService
         the markers in the context block. The UI will turn these into links.
   SYSTEM
 
+  # Ask needs both a chat provider (config.x.ai) and an embeddings provider
+  # (config.x.embeddings). It intentionally does NOT pass through
+  # IssueTriageService.enabled? so the two AI features are independent.
   def self.enabled?
-    IssueTriageService.enabled? && EmbeddingService.enabled?
+    Rails.application.config.x.ai.enabled && EmbeddingService.enabled?
   end
 
   def initialize(project, question, anthropic: nil)
