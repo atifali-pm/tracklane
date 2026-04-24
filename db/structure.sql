@@ -209,7 +209,8 @@ CREATE TABLE public.issues (
     due_date date,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    triage_suggestion jsonb
+    triage_suggestion jsonb,
+    start_date date
 );
 
 ALTER TABLE ONLY public.issues FORCE ROW LEVEL SECURITY;
@@ -1382,6 +1383,7 @@ ALTER TABLE public.wiki_pages ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260424140626'),
 ('20260424133351'),
 ('20260424132130'),
 ('20260424120341'),

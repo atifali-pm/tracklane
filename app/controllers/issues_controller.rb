@@ -78,7 +78,7 @@ class IssuesController < ApplicationController
     end
 
     def issue_params
-      params.expect(issue: %i[title description status priority assignee_id due_date])
+      params.expect(issue: %i[title description status priority assignee_id start_date due_date])
     end
 
     def eligible_assignees

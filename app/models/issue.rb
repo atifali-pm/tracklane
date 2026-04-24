@@ -19,6 +19,15 @@ class Issue < ApplicationRecord
 
   scope :ordered, -> { order(created_at: :desc) }
   scope :open_issues, -> { where(status: %i[open in_progress in_review blocked]) }
+  scope :scheduled, -> { where("start_date IS NOT NULL OR due_date IS NOT NULL") }
+
+  def effective_start_date
+    start_date || created_at&.to_date || Date.current
+  end
+
+  def effective_end_date
+    due_date || effective_start_date
+  end
 
   after_create_commit  :record_opened_event
   after_create_commit  :enqueue_triage, if: -> { IssueTriageService.enabled? }

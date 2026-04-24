@@ -1,0 +1,89 @@
+<% content_for :title, "#{@project.name} timeline" %>
+<% total_days = (@range_end - @range_start).to_i + 1 %>
+
+<div class="px-6 py-6 max-w-7xl">
+  <div class="mb-4">
+    <%= link_to @project.name, @project, class: "text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white" %>
+  </div>
+
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Timeline</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        <%= @range_start.to_fs(:long) %> → <%= @range_end.to_fs(:long) %>
+        · <%= pluralize(total_days, "day") %>
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <%= link_to "‹ 30d", project_gantt_path(@project, from: @range_start - 30, to: @range_end - 30),
+            class: "text-sm border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800" %>
+      <%= link_to "Today", project_gantt_path(@project),
+            class: "text-sm border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800" %>
+      <%= link_to "30d ›", project_gantt_path(@project, from: @range_start + 30, to: @range_end + 30),
+            class: "text-sm border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800" %>
+    </div>
+  </div>
+
+  <% if @issues.any? %>
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md overflow-x-auto">
+      <div class="grid" style="grid-template-columns: 18rem 1fr;">
+        <!-- Header -->
+        <div class="border-b border-gray-200 dark:border-gray-800 px-3 py-2 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium bg-gray-50 dark:bg-gray-950 sticky left-0 z-10">
+          Issue
+        </div>
+        <div class="border-b border-gray-200 dark:border-gray-800 relative bg-gray-50 dark:bg-gray-950" style="min-width: <%= total_days * 2.0 %>rem;">
+          <div class="flex h-8">
+            <% @days.each do |day| %>
+              <% is_today = day == Date.current %>
+              <% is_weekend = day.saturday? || day.sunday? %>
+              <div class="flex-1 border-r border-gray-100 dark:border-gray-900 text-[10px] text-center pt-1 <%= is_today ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-semibold' : (is_weekend ? 'text-gray-400 dark:text-gray-600' : 'text-gray-500 dark:text-gray-400') %>" style="min-width: 2rem;">
+                <%= day.day %>
+                <% if day.day == 1 || day == @range_start %>
+                  <div class="text-[9px] <%= is_today ? '' : 'text-gray-400 dark:text-gray-600' %>"><%= day.strftime("%b") %></div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Rows -->
+        <% @issues.each do |issue| %>
+          <div class="border-b border-gray-200 dark:border-gray-800 px-3 py-2 text-sm bg-white dark:bg-gray-900 sticky left-0 z-10">
+            <%= link_to [ @project, issue ], class: "block" do %>
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="text-xs text-gray-400 dark:text-gray-500 font-mono shrink-0">#<%= issue.number %></span>
+                <span class="text-gray-900 dark:text-gray-100 truncate"><%= issue.title %></span>
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 capitalize">
+                <%= issue.status.humanize %>
+                <% if issue.assignee %>
+                  · @<%= issue.assignee.email_address.split('@').first %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+          <div class="border-b border-gray-200 dark:border-gray-800 relative py-3" style="min-width: <%= total_days * 2.0 %>rem;">
+            <% bar_start = [ issue.effective_start_date, @range_start ].max %>
+            <% bar_end   = [ issue.effective_end_date,   @range_end ].min %>
+            <% if bar_end >= bar_start %>
+              <% left_pct  = ((bar_start - @range_start).to_f / total_days * 100).round(2) %>
+              <% width_pct = (((bar_end - bar_start).to_i + 1).to_f / total_days * 100).round(2) %>
+              <div class="absolute top-1/2 -translate-y-1/2 rounded-md text-[10px] text-gray-900 dark:text-gray-100 px-1.5 py-0.5 truncate <%= status_badge_class(issue.status) %>"
+                   style="left: <%= left_pct %>%; width: <%= width_pct %>%; min-width: 1.5rem;"
+                   title="<%= "#{issue.project.slug}-##{issue.number}: #{issue.title} · #{bar_start.to_fs(:long)} → #{bar_end.to_fs(:long)}" %>">
+                #<%= issue.number %>
+              </div>
+            <% else %>
+              <div class="text-xs text-gray-400 dark:text-gray-600 italic px-3">out of view</div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <div class="border border-dashed border-gray-300 dark:border-gray-700 rounded-md p-10 text-center bg-white dark:bg-gray-900">
+      <p class="text-gray-600 dark:text-gray-400 mb-2">No scheduled issues yet.</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Set a <span class="font-mono">start_date</span> or <span class="font-mono">due_date</span> on an issue to plot it here.</p>
+    </div>
+  <% end %>
+</div>
