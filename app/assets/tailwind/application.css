@@ -4,3 +4,12 @@
    on <html>. The TenantScoping layout sets this from the user's saved
    preference (or resolves "system" via a no-JS meta fallback). */
 @custom-variant dark (&:where([data-theme="dark"] *));
+
+/* Explicit fallback for the app shell so dark styling works even if the
+   Tailwind variant compiles unexpectedly under certain CSS loaders. These
+   target the html element directly, which the generated dark: rules do
+   not cover (they only match descendants of [data-theme=dark]). */
+html[data-theme="dark"] body {
+  background-color: var(--color-gray-950);
+  color: var(--color-gray-100);
+}
