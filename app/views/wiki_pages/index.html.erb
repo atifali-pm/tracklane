@@ -1,0 +1,47 @@
+<% content_for :title, "#{@project.name} wiki" %>
+
+<div class="px-6 py-6 max-w-5xl">
+  <div class="mb-4">
+    <%= link_to @project.name, @project, class: "text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white" %>
+  </div>
+
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Wiki</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Team-edited notes for <%= @project.name %>.</p>
+    </div>
+    <% if %w[admin manager member].include?(current_membership&.role.to_s) %>
+      <%= link_to "+ New page", new_project_wiki_page_path(@project),
+            class: "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-4 py-2 text-sm hover:bg-gray-800 dark:hover:bg-white" %>
+    <% end %>
+  </div>
+
+  <% if @wiki_pages.any? %>
+    <ul class="divide-y divide-gray-200 dark:divide-gray-800 border border-gray-200 dark:border-gray-800 rounded-md bg-white dark:bg-gray-900">
+      <% @wiki_pages.each do |page| %>
+        <li class="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800">
+          <%= link_to project_wiki_page_path(@project, page), class: "flex items-center justify-between" do %>
+            <div class="min-w-0 flex-1">
+              <div class="font-medium text-gray-900 dark:text-gray-100 truncate"><%= page.title %></div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                /<%= page.slug %>
+                <% if page.last_editor %>
+                  · last edited by <%= page.last_editor.email_address.split('@').first %>
+                <% end %>
+                · <%= time_ago_in_words(page.updated_at) %> ago
+              </div>
+            </div>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <div class="border border-dashed border-gray-300 dark:border-gray-700 rounded-md p-10 text-center bg-white dark:bg-gray-900">
+      <p class="text-gray-600 dark:text-gray-400 mb-4">No wiki pages yet.</p>
+      <% if %w[admin manager member].include?(current_membership&.role.to_s) %>
+        <%= link_to "Create the first page", new_project_wiki_page_path(@project),
+              class: "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-4 py-2 text-sm hover:bg-gray-800 dark:hover:bg-white" %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,38 @@
+<%= form_with model: [ @project, wiki_page ], class: "space-y-5" do |f| %>
+  <% if wiki_page.errors.any? %>
+    <div class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-900 text-red-800 dark:text-red-200 rounded-md p-3 text-sm">
+      <ul class="list-disc list-inside space-y-1">
+        <% wiki_page.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :title, class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+    <%= f.text_field :title, required: true, autofocus: true,
+          class: "block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:outline-blue-600 px-3 py-2" %>
+  </div>
+
+  <% if wiki_page.persisted? %>
+    <div>
+      <%= f.label :slug, class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+      <%= f.text_field :slug, required: true,
+            class: "block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:outline-blue-600 px-3 py-2" %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :body, "Body (Markdown)", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+    <%= f.text_area :body, rows: 18,
+          placeholder: "# Heading\n\nMarkdown works. **Bold**, _italic_, `code`, tables, task lists.",
+          class: "block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:outline-blue-600 px-3 py-2 font-mono text-sm" %>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <%= f.submit class: "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-4 py-2 text-sm hover:bg-gray-800 dark:hover:bg-white cursor-pointer" %>
+    <%= link_to "Cancel", (wiki_page.persisted? ? [ @project, wiki_page ] : project_wiki_pages_path(@project)),
+          class: "text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white" %>
+  </div>
+<% end %>

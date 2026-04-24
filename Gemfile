@@ -10,6 +10,9 @@ gem "pg", "~> 1.1"
 gem "neighbor"
 # Official Anthropic Ruby SDK for Claude-powered triage / RAG / digests
 gem "anthropic", "~> 1.0"
+# Pure-Ruby Markdown to HTML for wiki pages
+gem "kramdown", "~> 2.4"
+gem "kramdown-parser-gfm", "~> 1.1"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]

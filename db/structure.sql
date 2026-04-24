@@ -488,6 +488,45 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: wiki_pages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.wiki_pages (
+    id bigint NOT NULL,
+    organization_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    last_editor_id bigint,
+    title character varying NOT NULL,
+    slug character varying NOT NULL,
+    body text NOT NULL,
+    "position" integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.wiki_pages FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: wiki_pages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.wiki_pages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: wiki_pages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.wiki_pages_id_seq OWNED BY public.wiki_pages.id;
+
+
+--
 -- Name: activity_events id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -569,6 +608,13 @@ ALTER TABLE ONLY public.time_entries ALTER COLUMN id SET DEFAULT nextval('public
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: wiki_pages id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wiki_pages ALTER COLUMN id SET DEFAULT nextval('public.wiki_pages_id_seq'::regclass);
 
 
 --
@@ -681,6 +727,14 @@ ALTER TABLE ONLY public.time_entries
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: wiki_pages wiki_pages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wiki_pages
+    ADD CONSTRAINT wiki_pages_pkey PRIMARY KEY (id);
 
 
 --
@@ -950,6 +1004,34 @@ CREATE UNIQUE INDEX index_users_on_email_address ON public.users USING btree (em
 
 
 --
+-- Name: index_wiki_pages_on_last_editor_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wiki_pages_on_last_editor_id ON public.wiki_pages USING btree (last_editor_id);
+
+
+--
+-- Name: index_wiki_pages_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wiki_pages_on_organization_id ON public.wiki_pages USING btree (organization_id);
+
+
+--
+-- Name: index_wiki_pages_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_wiki_pages_on_project_id ON public.wiki_pages USING btree (project_id);
+
+
+--
+-- Name: index_wiki_pages_on_project_id_and_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_wiki_pages_on_project_id_and_slug ON public.wiki_pages USING btree (project_id, slug);
+
+
+--
 -- Name: comments fk_rails_03de2dc08c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1078,6 +1160,14 @@ ALTER TABLE ONLY public.comments
 
 
 --
+-- Name: wiki_pages fk_rails_b764bd0f32; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wiki_pages
+    ADD CONSTRAINT fk_rails_b764bd0f32 FOREIGN KEY (organization_id) REFERENCES public.organizations(id);
+
+
+--
 -- Name: time_entries fk_rails_c059b6a70d; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1107,6 +1197,22 @@ ALTER TABLE ONLY public.invitations
 
 ALTER TABLE ONLY public.issues
     ADD CONSTRAINT fk_rails_e760f5afbf FOREIGN KEY (reporter_id) REFERENCES public.users(id);
+
+
+--
+-- Name: wiki_pages fk_rails_ebb60ace15; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wiki_pages
+    ADD CONSTRAINT fk_rails_ebb60ace15 FOREIGN KEY (project_id) REFERENCES public.projects(id);
+
+
+--
+-- Name: wiki_pages fk_rails_f0e81a7598; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.wiki_pages
+    ADD CONSTRAINT fk_rails_f0e81a7598 FOREIGN KEY (last_editor_id) REFERENCES public.users(id);
 
 
 --
@@ -1251,10 +1357,23 @@ CREATE POLICY tenant_isolation ON public.time_entries USING ((organization_id = 
 
 
 --
+-- Name: wiki_pages tenant_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY tenant_isolation ON public.wiki_pages USING ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint)) WITH CHECK ((organization_id = (NULLIF(current_setting('app.current_organization_id'::text, true), ''::text))::bigint));
+
+
+--
 -- Name: time_entries; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.time_entries ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: wiki_pages; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.wiki_pages ENABLE ROW LEVEL SECURITY;
 
 --
 -- PostgreSQL database dump complete
@@ -1263,6 +1382,7 @@ ALTER TABLE public.time_entries ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260424133351'),
 ('20260424132130'),
 ('20260424120341'),
 ('20260423105713'),

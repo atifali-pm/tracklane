@@ -50,6 +50,9 @@ class TenantIsolationTest < ActiveSupport::TestCase
 
     @acme_time   = TimeEntry.create!(organization: @acme,   issue: @acme_issue,   user: @alice, minutes: 30, occurred_on: Date.current)
     @globex_time = TimeEntry.create!(organization: @globex, issue: @globex_issue, user: @bob,   minutes: 45, occurred_on: Date.current)
+
+    @acme_wiki   = WikiPage.create!(organization: @acme,   project: @acme_p1,   title: "Acme Spec",   body: "# Acme")
+    @globex_wiki = WikiPage.create!(organization: @globex, project: @globex_p1, title: "Globex Spec", body: "# Globex")
   end
 
   # --- projects ------------------------------------------------------------
@@ -437,6 +440,41 @@ class TenantIsolationTest < ActiveSupport::TestCase
   test "time entries table has RLS enabled and forced" do
     row = ApplicationRecord.connection.select_one(
       "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname = 'time_entries'"
+    )
+    assert row["relrowsecurity"]
+    assert row["relforcerowsecurity"]
+  end
+
+  # --- wiki pages ----------------------------------------------------------
+
+  test "wiki pages visible only from their own tenant" do
+    as_app(user: @alice, organization: @acme) do
+      assert_equal [ @acme_wiki.id ], WikiPage.pluck(:id)
+    end
+    as_app(user: @bob, organization: @globex) do
+      assert_equal [ @globex_wiki.id ], WikiPage.pluck(:id)
+    end
+  end
+
+  test "cross-tenant wiki page INSERT is blocked" do
+    as_app(user: @alice, organization: @acme) do
+      assert_raises ActiveRecord::StatementInvalid do
+        WikiPage.create!(organization: @globex, project: @globex_p1, title: "Rogue", body: "x")
+      end
+    end
+  end
+
+  test "cross-tenant wiki page UPDATE affects zero rows" do
+    as_app(user: @alice, organization: @acme) do
+      affected = WikiPage.where(id: @globex_wiki.id).update_all(title: "Hijacked")
+      assert_equal 0, affected
+    end
+    assert_equal "Globex Spec", @globex_wiki.reload.title
+  end
+
+  test "wiki pages table has RLS enabled and forced" do
+    row = ApplicationRecord.connection.select_one(
+      "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE relname = 'wiki_pages'"
     )
     assert row["relrowsecurity"]
     assert row["relforcerowsecurity"]

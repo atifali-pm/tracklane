@@ -19,6 +19,7 @@ Rails.application.routes.draw do
     end
     resource :calendar, only: %i[show], controller: "calendars"
     resource :ask, only: %i[show create], controller: "project_asks"
+    resources :wiki_pages, param: :slug, path: "wiki"
   end
   resources :invitations, only: %i[index new create destroy], param: :token
   resource :invitation_acceptance, only: %i[show create], path: "invitations/accept/:token"

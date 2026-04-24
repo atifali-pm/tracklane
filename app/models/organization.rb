@@ -6,6 +6,7 @@ class Organization < ApplicationRecord
   has_many :issues, dependent: :destroy
   has_many :activity_events, dependent: :destroy
   has_many :time_entries, dependent: :destroy
+  has_many :wiki_pages, dependent: :destroy
 
   validates :name, presence: true
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9\-]+\z/ }

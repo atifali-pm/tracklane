@@ -1,0 +1,33 @@
+<% content_for :title, @wiki_page.title %>
+
+<div class="px-6 py-6 max-w-4xl">
+  <div class="mb-4">
+    <%= link_to "#{@project.name} wiki", project_wiki_pages_path(@project), class: "text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white" %>
+  </div>
+
+  <div class="flex items-start justify-between mb-6">
+    <div class="min-w-0">
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100"><%= @wiki_page.title %></h1>
+      <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+        <% if @wiki_page.last_editor %>
+          Last edited by <%= @wiki_page.last_editor.email_address %>
+        <% end %>
+        · <%= time_ago_in_words(@wiki_page.updated_at) %> ago
+      </div>
+    </div>
+    <% if %w[admin manager member].include?(current_membership&.role.to_s) %>
+      <div class="flex items-center gap-2 shrink-0">
+        <%= link_to "Edit", edit_project_wiki_page_path(@project, @wiki_page),
+              class: "text-sm border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800" %>
+        <%= button_to "Delete", project_wiki_page_path(@project, @wiki_page),
+              method: :delete,
+              data: { turbo_confirm: "Delete #{@wiki_page.title}?" },
+              class: "text-sm border border-red-300 dark:border-red-900 text-red-700 dark:text-red-300 rounded-md px-3 py-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+
+  <article class="prose-tracklane bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md p-6">
+    <%= markdown(@wiki_page.body) %>
+  </article>
+</div>

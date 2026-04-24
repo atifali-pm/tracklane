@@ -1,6 +1,7 @@
 class Project < ApplicationRecord
   belongs_to :organization
   has_many :issues, dependent: :destroy
+  has_many :wiki_pages, dependent: :destroy
 
   enum :status, { active: 0, archived: 1 }
 

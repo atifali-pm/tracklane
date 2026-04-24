@@ -7,7 +7,9 @@ module ActivityEventsHelper
     "project.created"      => "+",
     "membership.created"   => "+",
     "invitation.created"   => "✉",
-    "time.logged"          => "⏱"
+    "time.logged"          => "⏱",
+    "wiki.created"         => "📝",
+    "wiki.updated"         => "✎"
   }.freeze
 
   def activity_icon(event)
@@ -39,6 +41,10 @@ module ActivityEventsHelper
       hours, mins = minutes.divmod(60)
       formatted = hours.positive? ? (mins.zero? ? "#{hours}h" : "#{hours}h #{mins}m") : "#{mins}m"
       "#{actor} logged #{formatted} on #{meta['project_slug']}-##{meta['issue_number']}"
+    when "wiki.created"
+      "#{actor} created wiki page \"#{meta['title']}\" in #{meta['project_slug']}"
+    when "wiki.updated"
+      "#{actor} updated wiki page \"#{meta['title']}\" in #{meta['project_slug']}"
     else
       "#{actor} performed #{event.action}"
     end
