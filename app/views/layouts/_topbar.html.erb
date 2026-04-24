@@ -15,6 +15,7 @@
     <div class="flex items-center gap-3 shrink-0">
       <%= button_to user_preferences_path(theme: (theme_preference == "dark" ? "light" : "dark")),
             method: :patch,
+            form: { data: { turbo: false } },
             class: "text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" do %>
         <%= theme_preference == "dark" ? "☀" : "☾" %>
       <% end %>

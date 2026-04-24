@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   resource :user_preferences, only: %i[update]
 
   get "activity" => "activity_events#index", as: :activity
+  get "workload" => "workloads#index", as: :workload
 
   mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
 
@@ -15,6 +16,7 @@ Rails.application.routes.draw do
       resources :comments, only: %i[create]
       resource :triage, only: %i[update destroy], controller: "issue_triages"
     end
+    resource :calendar, only: %i[show], controller: "calendars"
   end
   resources :invitations, only: %i[index new create destroy], param: :token
   resource :invitation_acceptance, only: %i[show create], path: "invitations/accept/:token"

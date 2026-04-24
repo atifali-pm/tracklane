@@ -16,7 +16,8 @@
     } %>
 
     <%= sidebar_link.call(root_path,        "Home",        controller_name == "dashboard",        "⌂") %>
-    <%= sidebar_link.call(projects_path,    "Projects",    controller_name == "projects" || controller_name == "issues" || controller_name == "boards", "▦") %>
+    <%= sidebar_link.call(projects_path,    "Projects",    controller_name == "projects" || controller_name == "issues" || controller_name == "boards" || controller_name == "calendars", "▦") %>
+    <%= sidebar_link.call(workload_path,    "Workload",    controller_name == "workloads",        "⚟") %>
     <%= sidebar_link.call(activity_path,    "Activity",    controller_name == "activity_events", "≡") %>
     <% if current_membership&.admin? %>
       <%= sidebar_link.call(invitations_path, "Invitations", controller_name == "invitations", "✉") %>
