@@ -9,7 +9,7 @@ gem "pg", "~> 1.1"
 # Nearest-neighbor search with pgvector for AI features
 gem "neighbor"
 # Official Anthropic Ruby SDK for Claude-powered triage / RAG / digests
-gem "anthropic", "~> 1.0"
+gem "anthropic", "~> 1.36"
 # Pure-Ruby Markdown to HTML for wiki pages
 gem "kramdown", "~> 2.4"
 gem "kramdown-parser-gfm", "~> 1.1"
